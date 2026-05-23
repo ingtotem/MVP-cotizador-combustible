@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cotización · Vista Cliente</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Estilos específicos para la vista cliente (formato cotización profesional) */
+    .doc-page {
+      max-width: 980px;
+      margin: 32px auto;
+      background: #ffffff;
+      color: #0d1117;
+      padding: 48px 56px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    @media print {
+      body { background: white !important; }
+      .app-header, .no-print { display: none !important; }
+      .doc-page { box-shadow: none; margin: 0; max-width: 100%; padding: 24px; border-radius: 0; }
+    }
+
+    .doc-page h1, .doc-page h2, .doc-page h3, .doc-page h4 { color: #0d1117; }
+
+    .doc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 24px;
+      border-bottom: 2px solid #d96b27;
+      margin-bottom: 32px;
+    }
+
+    .doc-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .doc-logo .mark {
+      width: 48px; height: 48px;
+      background: #d96b27;
+      display: grid;
+      place-items: center;
+      font-family: 'Fraunces', serif;
+      font-weight: 800;
+      color: white;
+      font-size: 24px;
+      border-radius: 6px;
+    }
+
+    .doc-logo .name {
+      font-family: 'Fraunces', serif;
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: 0.02em;
+    }
+
+    .doc-meta {
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #6e7681;
+    }
+
+    .doc-meta .codigo {
+      font-size: 16px;
+      color: #d96b27;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .doc-title {
+      text-align: center;
+      font-family: 'Fraunces', serif;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 32px;
+      letter-spacing: 0.04em;
+    }
+
+    .doc-info {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      row-gap: 6px;
+      column-gap: 16px;
+      margin-bottom: 32px;
+      font-size: 13px;
+    }
+
+    .doc-info dt {
+      font-weight: 600;
+      color: #6e7681;
+    }
+
+    .doc-info dd { margin: 0; }
+
+    .doc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+      font-size: 12px;
+    }
+
+    .doc-table thead th {
+      background: #0d1117;
+      color: white;
+      padding: 10px 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .doc-table thead th.center { text-align: center; }
+    .doc-table thead th.right { text-align: right; }
+
+    .doc-table tbody td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: top;
+    }
+
+    .doc-table tbody tr.section td {
+      background: #f3f4f6;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .doc-table .num { text-align: center; width: 40px; }
+    .doc-table .cant { text-align: center; width: 60px; }
+    .doc-table .money { text-align: right; font-family: 'JetBrains Mono', monospace; width: 110px; }
+
+    .doc-table .item-name { font-weight: 600; }
+    .doc-table .item-desc { font-size: 11px; color: #6e7681; margin-top: 4px; }
+
+    .doc-totals {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .doc-condiciones h4 {
+      font-size: 13px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .doc-condiciones .row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 12px;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+
+    .doc-totals-table {
+      width: 100%;
+      font-size: 12px;
+    }
+
+    .doc-totals-table tr td {
+      padding: 6px 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .doc-totals-table tr td:first-child {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .doc-totals-table tr td.money {
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .doc-totals-table .total-row td {
+      background: #0d1117;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 10px 12px;
+    }
+
+    .doc-renta {
+      margin-top: 16px;
+      border: 2px solid #d96b27;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      background: #fff7ed;
+    }
+    .doc-renta .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #6e7681; }
+    .doc-renta .val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: #d96b27; margin: 4px 0; }
+    .doc-renta .plazo { font-size: 11px; color: #6e7681; }
+
+    .doc-firma {
+      margin-top: 64px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+    }
+
+    .doc-firma .firma-block {
+      text-align: center;
+      padding-top: 56px;
+      border-top: 1px solid #6e7681;
+      font-size: 12px;
+    }
+
+    .doc-firma .firma-block strong { display: block; font-size: 13px; margin-bottom: 2px; }
+
+    .doc-foot {
+      margin-top: 32px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .action-bar {
+      max-width: 980px;
+      margin: 16px auto 0;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header no-print">
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-name">TOTEM</div>
+      <div class="brand-tag">Cotización · Vista Cliente</div>
+    </div>
+    <nav class="nav-tabs">
+      <a href="index.html">Dashboard</a>
+      <a href="oferta.html">Volver a Cotización</a>
+    </nav>
+    <div class="user-chip">
+      <span>Demo User</span>
+      <span class="role">Lector</span>
+    </div>
+  </header>
+
+  <div class="action-bar no-print">
+    <button class="btn btn-secondary" onclick="window.history.back()">← Volver a editar</button>
+    <button class="btn btn-primary" onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+  </div>
+
+  <div class="doc-page" id="doc">
+    <!-- Generado por JS -->
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/calculo.js"></script>
+  <script src="js/oferta-cliente.js"></script>
+  <script>
+    (async () => {
+      const ok = await requireAuth('oferta-cliente');
+      if (!ok) return;
+      await cargarDatosBase();
+      aplicarPermisosNav();
+      if (window.renderDoc) window.renderDoc();
+    })();
+  </script>
+</body>
+</html>

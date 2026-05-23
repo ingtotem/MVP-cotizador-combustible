@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOTEM · Cotizador Control de Combustible</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-name">TOTEM</div>
+      <div class="brand-tag">Cotizador · Control de Combustible</div>
+    </div>
+    <nav class="nav-tabs">
+      <a href="index.html" class="active">Dashboard</a>
+      <a href="levantamiento.html">Levantamiento</a>
+      <a href="oferta.html">Cotización</a>
+      <a href="proyectos.html">Proyectos</a>
+      <a href="mantenimiento.html">Mantenimiento</a>
+    </nav>
+    <div class="user-chip">
+      <span>Cargando...</span>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="page-head">
+      <div class="titles">
+        <div class="eyebrow">Panel de Control</div>
+        <h1>Dashboard de Cotizaciones</h1>
+        <div class="subtitle" id="welcome-text">Resumen de actividad comercial</div>
+      </div>
+      <div class="flex-gap" id="header-actions"></div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="grid grid-4" id="stats-grid">
+      <div class="stat-card">
+        <div class="label">Total Ofertado</div>
+        <div class="value mono" id="stat-total">—</div>
+        <div class="delta text-secondary">ofertas aprobadas/enviadas</div>
+      </div>
+      <div class="stat-card cool">
+        <div class="label">Ofertas en Proceso</div>
+        <div class="value mono" id="stat-proceso">—</div>
+        <div class="delta text-secondary">borrador + revisión</div>
+      </div>
+      <div class="stat-card warn">
+        <div class="label">Proyectos Activos</div>
+        <div class="value mono" id="stat-proyectos">—</div>
+        <div class="delta text-secondary">en gestión</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Margen Promedio</div>
+        <div class="value mono" id="stat-margen">—</div>
+        <div class="delta text-secondary">sobre ofertas activas</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 24px;">
+      <div class="panel">
+        <div class="panel-head">
+          <h3><span class="num">01</span> Últimas Cotizaciones</h3>
+          <a href="proyectos.html" class="btn btn-ghost btn-sm">Ver todas →</a>
+        </div>
+        <table class="data-table" id="tbl-ultimas">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Proyecto</th>
+              <th>Cliente</th>
+              <th>Versión</th>
+              <th>Estado</th>
+              <th class="money">PVP Total</th>
+            </tr>
+          </thead>
+          <tbody><tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px;">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3><span class="num">02</span> Versionamiento</h3>
+        </div>
+        <div class="panel-body" id="version-info">
+          <div class="text-muted" style="text-align:center;padding:20px;">Cargando...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3><span class="num">03</span> Acciones Rápidas</h3>
+      </div>
+      <div class="panel-body">
+        <div class="grid grid-3" id="acciones-rapidas"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Supabase SDK + nuestros JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/data.js"></script>
+  <script>
+    (async () => {
+      // 1. Verificar sesión y permisos
+      const ok = await requireAuth('index');
+      if (!ok) return;
+
+      // 2. Cargar datos base (catálogo, recetas, etc.) en memoria
+      await cargarDatosBase();
+
+      // 3. Aplicar permisos al nav (oculta links sin acceso) + chip usuario
+      aplicarPermisosNav();
+
+      // 4. Saludo
+      document.getElementById('welcome-text').textContent =
+        `Hola, ${auth.profile.nombre}. Resumen de actividad del sistema.`;
+
+      // 5. Acciones rápidas según rol
+      renderAccionesRapidas();
+
+      // 6. Métricas del dashboard
+      cargarMetricas();
+      cargarUltimasCotizaciones();
+      cargarVersionInfo();
+    })();
+
+    function renderAccionesRapidas() {
+      const cont = document.getElementById('acciones-rapidas');
+      const rol = auth.profile.rol;
+      const acciones = [];
+
+      if (['admin', 'ingeniero'].includes(rol)) {
+        acciones.push({
+          href: 'levantamiento.html',
+          color: 'var(--accent-hot)',
+          icon: '＋',
+          title: 'Nuevo Levantamiento',
+          desc: 'Ingeniero · registra equipos en obra',
+        });
+      }
+      if (['admin', 'cotizador', 'revisor'].includes(rol)) {
+        acciones.push({
+          href: 'oferta.html',
+          color: 'var(--accent-cool)',
+          icon: '$',
+          title: 'Armar Cotización',
+          desc: 'Cotizador · margen, MO, adicionales',
+        });
+      }
+      if (rol === 'admin') {
+        acciones.push({
+          href: 'mantenimiento.html',
+          color: 'var(--accent-warn)',
+          icon: '⚙',
+          title: 'Mantenimiento',
+          desc: 'Catálogo, recetas, parámetros, usuarios',
+        });
+      }
+      acciones.push({
+        href: 'proyectos.html',
+        color: 'var(--text-secondary)',
+        icon: '▤',
+        title: 'Ver Proyectos',
+        desc: 'Histórico de ofertas y versiones',
+      });
+
+      cont.innerHTML = acciones.map(a => `
+        <a href="${a.href}" class="btn btn-secondary" style="padding:20px;justify-content:flex-start;flex-direction:column;align-items:flex-start;">
+          <span style="font-family:var(--font-display);font-size:18px;font-weight:700;color:${a.color};">${a.icon}</span>
+          <span>${a.title}</span>
+          <span class="text-muted" style="font-size:11px;font-weight:400;">${a.desc}</span>
+        </a>
+      `).join('');
+
+      // Header action principal según rol
+      const headerActions = document.getElementById('header-actions');
+      if (['admin', 'ingeniero'].includes(rol)) {
+        headerActions.innerHTML = '<a href="levantamiento.html" class="btn btn-primary">＋ Nuevo Levantamiento</a>';
+      } else if (['admin', 'cotizador', 'revisor'].includes(rol)) {
+        headerActions.innerHTML = '<a href="oferta.html" class="btn btn-primary">＋ Nueva Cotización</a>';
+      }
+    }
+
+    async function cargarMetricas() {
+      const { data, error } = await supabase.from('dashboard_metricas').select('*').single();
+      if (error) {
+        console.error(error);
+        return;
+      }
+      const fmt = n => '$' + Number(n || 0).toLocaleString('es-EC', { maximumFractionDigits: 0 });
+      document.getElementById('stat-total').textContent = fmt(data.valor_total_aprobado);
+      document.getElementById('stat-proceso').textContent = data.ofertas_en_proceso ?? 0;
+      document.getElementById('stat-proyectos').textContent = data.proyectos_activos ?? 0;
+      document.getElementById('stat-margen').textContent =
+        ((Number(data.margen_promedio) || 0) * 100).toFixed(1) + '%';
+    }
+
+    async function cargarUltimasCotizaciones() {
+      const { data, error } = await supabase
+        .from('ofertas_con_version_actual')
+        .select('*')
+        .order('oferta_creada_en', { ascending: false })
+        .limit(6);
+
+      const tbody = document.querySelector('#tbl-ultimas tbody');
+      if (error || !data) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px;">Error cargando datos.</td></tr>';
+        return;
+      }
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px;">No hay cotizaciones registradas todavía.</td></tr>';
+        return;
+      }
+      const badgeEstado = {
+        borrador: '<span class="badge badge-draft">Borrador</span>',
+        en_revision: '<span class="badge badge-draft">En revisión</span>',
+        aprobada: '<span class="badge badge-approved">Aprobada</span>',
+        enviada: '<span class="badge badge-approved">Enviada</span>',
+        rechazada: '<span class="badge badge-archived">Rechazada</span>',
+        archivada: '<span class="badge badge-archived">Archivada</span>',
+      };
+      tbody.innerHTML = data.map(o => `
+        <tr>
+          <td class="mono">${o.codigo || '—'}</td>
+          <td>${o.referencia || o.proyecto_nombre}</td>
+          <td>${o.cliente_nombre}</td>
+          <td><span class="badge badge-v">v${o.version_actual}</span></td>
+          <td>${badgeEstado[o.oferta_estado] || o.oferta_estado}</td>
+          <td class="money">$${Number(o.total || 0).toLocaleString('es-EC', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function cargarVersionInfo() {
+      const { data } = await supabase.from('dashboard_metricas').select('total_versiones, ofertas_cerradas').single();
+      const cont = document.getElementById('version-info');
+      cont.innerHTML = `
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border-subtle);">
+          <span>Total de versiones creadas</span>
+          <span class="mono"><span class="badge badge-v">${data?.total_versiones ?? 0}</span></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border-subtle);">
+          <span>Ofertas cerradas</span>
+          <span class="mono"><span class="badge badge-approved">${data?.ofertas_cerradas ?? 0}</span></span>
+        </div>
+        <div class="text-muted" style="font-size:11px;margin-top:12px;text-align:center;">
+          Cada edición de una oferta crea una nueva versión. Las versiones anteriores quedan en el histórico inmutable.
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
