@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nueva Cotización · TOTEM</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-name">TOTEM</div>
+      <div class="brand-tag">Cotizador · Control de Combustible</div>
+    </div>
+    <nav class="nav-tabs">
+      <a href="index.html">Dashboard</a>
+      <a href="cotizador.html" class="active">Nueva Cotización</a>
+      <a href="proyectos.html">Proyectos</a>
+      <a href="mantenimiento.html">Mantenimiento</a>
+    </nav>
+    <div class="user-chip">
+      <span>Demo User</span>
+      <span class="role">Ingeniero</span>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="page-head">
+      <div class="titles">
+        <div class="eyebrow">Levantamiento técnico · v1 (Borrador)</div>
+        <h1>Nueva Cotización</h1>
+        <div class="subtitle">Agrega equipos del catálogo y define los metros de cable y tubería. Las recetas calculan mano de obra y materiales automáticamente.</div>
+      </div>
+    </div>
+
+    <!-- Datos del proyecto -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3><span class="num">01</span> Datos del Proyecto</h3>
+      </div>
+      <div class="panel-body">
+        <div class="grid grid-3">
+          <div>
+            <label>Cliente</label>
+            <input type="text" placeholder="ej: Langosmar S.A.">
+          </div>
+          <div>
+            <label>Persona de Contacto</label>
+            <input type="text" placeholder="ej: Federico Weber">
+          </div>
+          <div>
+            <label>Referencia</label>
+            <input type="text" placeholder="ej: Estación Fija 2 tanques 1 despacho">
+          </div>
+          <div>
+            <label>Lugar de Obra</label>
+            <input type="text" placeholder="ej: Puerto Sabana Grande">
+          </div>
+          <div>
+            <label>Coordenadas (opcional)</label>
+            <input type="text" class="mono" placeholder="2°27'45.1\"S 80°08'13.4\"W">
+          </div>
+          <div>
+            <label>Ubicación geográfica</label>
+            <div class="toggle-group">
+              <button class="active">En Guayaquil/Quito</button>
+              <button>Fuera</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- POS Layout -->
+    <div class="grid grid-pos">
+      <div>
+        <!-- Buscador -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3><span class="num">02</span> Buscador de Equipos</h3>
+            <span class="text-muted mono" style="font-size:11px;">Catálogo: <span id="catalog-count"></span> productos</span>
+          </div>
+          <div class="panel-body">
+            <div class="pos-search">
+              <input type="text" id="pos-search-input" placeholder="Buscar por nombre, SKU, marca o categoría...">
+            </div>
+            <div class="pos-results" id="pos-results"></div>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <!-- Carrito de líneas -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3><span class="num">03</span> Equipos en el Levantamiento</h3>
+            <span class="text-muted mono" style="font-size:11px;"><span id="sum-count">0</span> ítems</span>
+          </div>
+          <div class="panel-body">
+            <div id="cart"></div>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <!-- Costos adicionales -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3><span class="num">04</span> Costos Adicionales <span class="text-muted mono" style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;">(internos · no se muestran al cliente)</span></h3>
+            <span class="text-muted mono" style="font-size:11px;"><span id="sum-adic-count">0</span> conceptos</span>
+          </div>
+          <div class="panel-body">
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+              <select id="adic-select" style="flex:1;"></select>
+              <button class="btn btn-secondary" onclick="agregarAdicional()">＋ Agregar</button>
+            </div>
+            <div id="adic-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen lateral -->
+      <div>
+        <div class="summary">
+          <div class="summary-head">
+            <h3>Resumen</h3>
+            <div class="text-muted" style="font-size:11px;font-family:var(--font-mono);margin-top:4px;">recalculado en vivo</div>
+          </div>
+
+          <div class="summary-rows">
+            <h4 style="margin-bottom:8px;">Costos Internos</h4>
+            <div class="summary-row"><span class="lbl">Equipos</span><span class="val mono" id="sum-equipos">$0,00</span></div>
+            <div class="summary-row"><span class="lbl">Materiales (cable/tubo)</span><span class="val mono" id="sum-materiales">$0,00</span></div>
+            <div class="summary-row"><span class="lbl">Mano de Obra</span><span class="val mono" id="sum-mano-obra">$0,00</span></div>
+            <div class="summary-row"><span class="lbl">Adicionales (log./ind./obra civil)</span><span class="val mono" id="sum-adicionales">$0,00</span></div>
+            <div id="sum-adic-desglose"></div>
+            <div class="summary-row" style="border-top:1px solid var(--border-strong);margin-top:4px;padding-top:8px;">
+              <span class="lbl text-secondary">→ Costo Total</span>
+              <span class="val mono" id="sum-costo-total">$0,00</span>
+            </div>
+          </div>
+
+          <div class="summary-rows" style="border-top:1px solid var(--border-subtle);background:rgba(57,197,207,0.04);">
+            <h4 style="margin-bottom:8px;color:var(--accent-cool);">Vista al Cliente</h4>
+            <div class="summary-row"><span class="lbl">Equipos</span><span class="val mono" id="sum-cli-equipos">$0,00</span></div>
+            <div class="summary-row"><span class="lbl">Materiales</span><span class="val mono" id="sum-cli-materiales">$0,00</span></div>
+            <div class="summary-row"><span class="lbl">Mano de Obra</span><span class="val mono" id="sum-cli-mano-obra">$0,00</span></div>
+            <div class="summary-row"><span class="lbl text-secondary">Subtotal</span><span class="val mono" id="sum-cli-subtotal">$0,00</span></div>
+            <div class="summary-row">
+              <span class="lbl">Descuento <input type="number" id="inp-descuento" value="0" min="0" max="50" step="0.5" style="width:55px;padding:2px 6px;font-size:11px;display:inline-block;margin-left:4px;">%</span>
+              <span class="val mono" id="sum-descuento">$0,00</span>
+            </div>
+            <div class="summary-row"><span class="lbl">IVA 15%</span><span class="val mono" id="sum-iva">$0,00</span></div>
+            <div class="summary-row"><span class="lbl text-secondary">Margen efectivo</span><span class="val mono text-cool" id="sum-margen">0%</span></div>
+          </div>
+
+          <div class="summary-total">
+            <span class="lbl">Total</span>
+            <span class="val" id="sum-total">$0,00</span>
+          </div>
+
+          <div class="summary-rows" style="border-top:1px solid var(--border-subtle);">
+            <h4 style="margin-bottom:8px;">Opción Renta</h4>
+            <div class="summary-row">
+              <span class="lbl">Plazo: <input type="number" id="inp-plazo" value="48" min="6" max="120" step="6" style="width:50px;padding:2px 6px;font-size:11px;display:inline-block;margin:0 4px;">meses</span>
+              <span class="val mono" id="sum-renta">$0,00</span>
+            </div>
+          </div>
+
+          <div class="summary-actions">
+            <button class="btn btn-primary">Guardar versión v1</button>
+            <button class="btn btn-secondary">Ver previsualización</button>
+            <button class="btn btn-ghost">Enviar a revisión</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/calculo.js"></script>
+  <script src="js/cotizador.js"></script>
+  <script>
+    document.getElementById('catalog-count').textContent = CATALOGO.length;
+  </script>
+</body>
+</html>

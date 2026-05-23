@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mantenimiento · TOTEM</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-name">TOTEM</div>
+      <div class="brand-tag">Cotizador · Control de Combustible</div>
+    </div>
+    <nav class="nav-tabs">
+      <a href="index.html">Dashboard</a>
+      <a href="cotizador.html">Nueva Cotización</a>
+      <a href="proyectos.html">Proyectos</a>
+      <a href="mantenimiento.html" class="active">Mantenimiento</a>
+    </nav>
+    <div class="user-chip">
+      <span>Demo User</span>
+      <span class="role">Admin</span>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="page-head">
+      <div class="titles">
+        <div class="eyebrow">Configuración</div>
+        <h1>Mantenimiento del Sistema</h1>
+        <div class="subtitle">Edita el catálogo, las recetas de cable y tubo, las horas-hombre por categoría y los parámetros globales. Todo esto se aplica automáticamente a los próximos cálculos.</div>
+      </div>
+    </div>
+
+    <!-- Catálogo -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3><span class="num">01</span> Catálogo de Productos</h3>
+        <div class="flex-gap">
+          <button class="btn btn-secondary btn-sm">Importar CSV</button>
+          <button class="btn btn-primary btn-sm">＋ Nuevo producto</button>
+        </div>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Nombre</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Grupo</th>
+            <th class="money">Costo</th>
+            <th class="money">PVP</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="cat-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- Recetas de Tubo -->
+    <div class="grid grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <h3><span class="num">02</span> Recetas de Tubería</h3>
+          <span class="text-muted mono" style="font-size:11px;">costo ponderado por metro</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Tipo</th><th>Descripción del ponderado</th><th class="money">$/m</th></tr>
+          </thead>
+          <tbody id="rec-tubo-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3><span class="num">03</span> Recetas de Cable</h3>
+          <span class="text-muted mono" style="font-size:11px;">por tipo y AWG</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Tipo</th><th>Aplicación</th><th class="money">$/m</th></tr>
+          </thead>
+          <tbody id="rec-cable-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- Mano de obra -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3><span class="num">04</span> Mano de Obra por Categoría</h3>
+        <span class="text-muted mono" style="font-size:11px;">horas base y factor por altura &gt;3m</span>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th class="money">Horas base</th>
+            <th class="money">Factor altura &gt;3m</th>
+            <th class="money">$/hora</th>
+            <th class="money">Costo MO (sin altura)</th>
+          </tr>
+        </thead>
+        <tbody id="rec-mo-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- Catálogo de Costos Adicionales -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3><span class="num">05</span> Catálogo de Costos Adicionales</h3>
+        <span class="text-muted mono" style="font-size:11px;">logística, indirectos, permisos, obra civil, imprevistos</span>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Concepto</th>
+            <th>Categoría</th>
+            <th>Unidad</th>
+            <th class="money">Costo default</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="adic-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- Parámetros globales -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3><span class="num">06</span> Parámetros Globales</h3>
+      </div>
+      <div class="panel-body">
+        <div class="grid grid-4">
+          <div>
+            <label>IVA</label>
+            <input type="text" class="mono" value="15.0%" readonly>
+          </div>
+          <div>
+            <label>Margen default</label>
+            <input type="text" class="mono" value="40.0%" readonly>
+          </div>
+          <div>
+            <label>Validez propuesta (días)</label>
+            <input type="text" class="mono" value="15" readonly>
+          </div>
+          <div>
+            <label>Plazo renta default (meses)</label>
+            <input type="text" class="mono" value="48" readonly>
+          </div>
+          <div>
+            <label>Garantía equipos (años)</label>
+            <input type="text" class="mono" value="1" readonly>
+          </div>
+          <div>
+            <label>Tiempo entrega (días)</label>
+            <input type="text" class="mono" value="90" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script>
+    // Render catálogo
+    const catTbody = document.getElementById('cat-tbody');
+    catTbody.innerHTML = CATALOGO.map(p => `
+      <tr>
+        <td class="mono text-hot" style="font-size:11px;">${p.sku}</td>
+        <td>${p.nombre}</td>
+        <td class="text-secondary">${p.marca}</td>
+        <td class="mono text-muted">${p.modelo}</td>
+        <td><span class="badge badge-v">${p.grupo}</span></td>
+        <td class="money">$${p.costo.toFixed(2)}</td>
+        <td class="money text-hot">$${p.pvp.toFixed(2)}</td>
+        <td><button class="btn btn-ghost btn-sm">✎</button></td>
+      </tr>
+    `).join('');
+
+    // Render recetas tubo
+    const tuboTbody = document.getElementById('rec-tubo-tbody');
+    tuboTbody.innerHTML = Object.entries(RECETAS_TUBO).map(([k, v]) => `
+      <tr>
+        <td class="mono text-hot" style="font-size:11px;">${k}</td>
+        <td><div>${v.nombre}</div><div class="text-muted" style="font-size:11px;margin-top:2px;">${v.descripcion}</div></td>
+        <td class="money">$${v.costo_m.toFixed(3)}</td>
+      </tr>
+    `).join('');
+
+    // Render recetas cable
+    const cableTbody = document.getElementById('rec-cable-tbody');
+    cableTbody.innerHTML = Object.entries(RECETAS_CABLE).map(([k, v]) => `
+      <tr>
+        <td class="mono text-hot" style="font-size:11px;">${k}</td>
+        <td><div>${v.nombre}</div><div class="text-muted" style="font-size:11px;margin-top:2px;">Tipo: ${v.tipo}</div></td>
+        <td class="money">$${v.costo_m.toFixed(3)}</td>
+      </tr>
+    `).join('');
+
+    // Render mano de obra
+    const moTbody = document.getElementById('rec-mo-tbody');
+    moTbody.innerHTML = Object.entries(RECETAS_MANO_OBRA).map(([k, v]) => `
+      <tr>
+        <td><span class="badge badge-v">${k}</span></td>
+        <td class="money">${v.horas_base.toFixed(2)} h</td>
+        <td class="money">× ${v.factor_altura.toFixed(2)}</td>
+        <td class="money">$${v.costo_hora.toFixed(4)}</td>
+        <td class="money text-hot">$${(v.horas_base * v.costo_hora).toFixed(2)}</td>
+      </tr>
+    `).join('');
+
+    // Render costos adicionales
+    const adicTbody = document.getElementById('adic-tbody');
+    if (adicTbody) {
+      adicTbody.innerHTML = COSTOS_ADICIONALES.map(a => `
+        <tr>
+          <td class="mono text-hot" style="font-size:11px;">${a.codigo}</td>
+          <td>${a.nombre}</td>
+          <td><span class="badge badge-v">${a.categoria}</span></td>
+          <td class="mono text-secondary">${a.unidad}</td>
+          <td class="money">$${a.costo.toFixed(2)}</td>
+          <td><button class="btn btn-ghost btn-sm">✎</button></td>
+        </tr>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
