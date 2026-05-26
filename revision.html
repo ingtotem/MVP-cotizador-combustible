@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revisión · TOTEM</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .revision-banner {
+      background: linear-gradient(90deg, rgba(245,158,11,0.08), transparent);
+      border-left: 4px solid var(--accent-warning);
+      padding: 12px 16px;
+      border-radius: var(--r-md);
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .revision-banner strong { color: var(--accent-warning); }
+    .lock-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      border-radius: var(--r-sm);
+      font-size: 10px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-left: 8px;
+    }
+    .ro-table td, .ro-table th { vertical-align: top; }
+    .ro-info { display: grid; gap: 4px; }
+    .ro-info .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .ro-info .val { font-size: 13px; color: var(--text-primary); }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark">T</div>
+    <div class="brand-name">TOTEM</div>
+    <span class="brand-tag">Control de Combustible</span>
+  </div>
+  <nav class="nav-tabs">
+    <a href="index.html">Dashboard</a>
+    <a href="levantamiento.html">Levantamiento</a>
+    <a href="revision.html" class="active">Revisión</a>
+    <a href="cotizacion.html">Cotización</a>
+    <a href="prospectos.html">Prospectos</a>
+    <a href="mantenimiento.html" id="nav-mant" style="display:none;">Mantenimiento</a>
+  </nav>
+  <div class="user-chip" id="user-chip">
+    <span id="user-name">—</span>
+    <span class="role" id="user-rol">···</span>
+  </div>
+</header>
+
+<main class="app-main">
+
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">PASO 2 DE 4 · Revisión</div>
+      <h1>Revisión técnica <span class="lock-tag">🔒 Solo lectura</span></h1>
+      <p class="subtitle" id="rev-subtitle">Verifica que todo esté correcto antes de pasar a cotización.</p>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-secondary" onclick="regresarALevantamiento()">← Regresar a levantamiento</button>
+      <button class="btn btn-primary" onclick="aprobarYCotizar()">Aprobar y cotizar →</button>
+    </div>
+  </div>
+
+  <div class="revision-banner">
+    <strong>Estado:</strong> Diseño técnico bloqueado para revisión. Si necesitas modificar algo, regresa a levantamiento.
+  </div>
+
+  <!-- 01 · Proyecto -->
+  <section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-head">
+      <h3><span class="num">01</span> Datos del proyecto</h3>
+    </div>
+    <div class="panel-body">
+      <div class="grid grid-3" id="proy-grid">
+        <!-- llenado por JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 · Equipos -->
+  <section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-head">
+      <h3><span class="num">02</span> Equipos del levantamiento <span class="badge badge-v mono" id="rev-eq-count">0</span></h3>
+    </div>
+    <table class="data-table ro-table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Equipo</th>
+          <th>Marca</th>
+          <th class="money">Cant.</th>
+          <th>Ubicación</th>
+          <th>Instalación</th>
+          <th>Observación</th>
+        </tr>
+      </thead>
+      <tbody id="rev-equipos-tbody"></tbody>
+    </table>
+  </section>
+
+  <!-- 03 · Requerimientos -->
+  <section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-head">
+      <h3><span class="num">03</span> Requerimientos adicionales <span class="badge badge-v mono" id="rev-req-count">0</span></h3>
+    </div>
+    <table class="data-table ro-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Concepto</th>
+          <th>Grupo</th>
+          <th class="money">Cantidad</th>
+          <th>Unidad</th>
+        </tr>
+      </thead>
+      <tbody id="rev-req-tbody"></tbody>
+    </table>
+  </section>
+
+  <!-- 04 · Resumen previo (sin precios) -->
+  <section class="panel">
+    <div class="panel-head">
+      <h3><span class="num">04</span> Resumen técnico</h3>
+    </div>
+    <div class="panel-body">
+      <div class="grid grid-4" id="resumen-tecnico-grid">
+        <!-- KPIs llenados por JS -->
+      </div>
+      <p class="text-muted" style="font-size:11px;margin-top:16px;margin-bottom:0;">
+        💡 Los precios y márgenes se definen en el siguiente paso (Cotización).
+      </p>
+    </div>
+  </section>
+
+  <div class="spacer-lg"></div>
+  <div class="flex-between">
+    <button class="btn btn-secondary" onclick="regresarALevantamiento()">← Regresar a levantamiento</button>
+    <button class="btn btn-primary" onclick="aprobarYCotizar()">Aprobar y cotizar →</button>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/data.js"></script>
+<script>
+  let dataRevision = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const user = await requireAuth('revision');
+    if (!user) return;
+    mountThemeToggle();
+    aplicarPermisosNav();
+
+    const ok = await cargarDatosBase();
+    if (!ok) return;
+
+    const rawRev = sessionStorage.getItem('totem_lev_para_revision');
+    if (!rawRev) {
+      document.querySelector('main').innerHTML = `
+        <div class="empty-state">
+          <h2>No hay nada en revisión</h2>
+          <p>Primero crea un levantamiento y envíalo a revisión.</p>
+          <a href="levantamiento.html" class="btn btn-primary">Ir a levantamiento</a>
+        </div>`;
+      return;
+    }
+    dataRevision = JSON.parse(rawRev);
+    pintarRevision();
+  });
+
+  function pintarRevision() {
+    const lev = dataRevision.lev;
+    document.getElementById('rev-subtitle').textContent =
+      `${lev.proyecto.cliente || '—'} · ${lev.items.length} equipos · ${lev.requerimientos.length} adicionales`;
+
+    // Datos del proyecto
+    document.getElementById('proy-grid').innerHTML = `
+      <div class="ro-info"><div class="lbl">Cliente</div><div class="val"><strong>${lev.proyecto.cliente || '—'}</strong></div></div>
+      <div class="ro-info"><div class="lbl">Contacto</div><div class="val">${lev.proyecto.contacto || '—'}</div></div>
+      <div class="ro-info"><div class="lbl">Teléfono</div><div class="val mono">${lev.proyecto.telefono || '—'}</div></div>
+      <div class="ro-info"><div class="lbl">Referencia</div><div class="val mono">${lev.proyecto.referencia || '—'}</div></div>
+      <div class="ro-info"><div class="lbl">Lugar</div><div class="val">${lev.proyecto.lugar || '—'}</div></div>
+      <div class="ro-info"><div class="lbl">Coordenadas GPS</div><div class="val mono">${lev.proyecto.coords || '—'}</div></div>
+      <div class="ro-info" style="grid-column:span 3;"><div class="lbl">Necesidad detectada</div><div class="val">${lev.proyecto.problema || '—'}</div></div>
+    `;
+
+    // Equipos
+    document.getElementById('rev-eq-count').textContent = lev.items.length;
+    let totalM = 0;
+    document.getElementById('rev-equipos-tbody').innerHTML = lev.items.map(it => {
+      const p = CATALOGO.find(x => x.id === it.producto_id);
+      if (!p) return '';
+      const partes = [];
+      if (it.tipo_tubo && it.tipo_tubo !== 'NINGUNO' && it.m_tubo > 0) partes.push(`Tubo ${it.tipo_tubo} ${it.m_tubo}m`);
+      if (it.cable_instr && it.cable_instr !== 'NINGUNO' && it.m_cable_instr > 0) partes.push(`Cable instr ${it.m_cable_instr}m`);
+      if (it.cable_datos && it.cable_datos !== 'NINGUNO' && it.m_cable_datos > 0) partes.push(`Cable datos ${it.m_cable_datos}m`);
+      if (it.cable_elec && it.cable_elec !== 'NINGUNO' && it.m_cable_elec > 0) partes.push(`Cable elec ${it.m_cable_elec}m`);
+      totalM += (it.m_tubo || 0) + (it.m_cable_instr || 0) + (it.m_cable_datos || 0) + (it.m_cable_elec || 0);
+      return `
+        <tr>
+          <td class="mono"><strong>${p.sku}</strong></td>
+          <td>${p.nombre}<br><span class="text-muted" style="font-size:11px;">${p.caracteristica_label || ''}</span></td>
+          <td>${p.marca || '—'}</td>
+          <td class="money mono"><strong>${it.cantidad}</strong></td>
+          <td>${it.ubicacion || '—'}${it.altura_mayor_3m ? ' <span class="badge badge-v">&gt;3m</span>' : ''}</td>
+          <td style="font-size:11px;" class="mono">${partes.length ? partes.join(' · ') : '—'}</td>
+          <td style="font-size:11px;color:var(--text-muted);font-style:italic;">${it.observacion || '—'}</td>
+        </tr>`;
+    }).join('');
+
+    // Requerimientos
+    document.getElementById('rev-req-count').textContent = lev.requerimientos.length;
+    if (lev.requerimientos.length === 0) {
+      document.getElementById('rev-req-tbody').innerHTML = `<tr><td colspan="5" class="text-muted" style="text-align:center;padding:24px;">Sin requerimientos adicionales.</td></tr>`;
+    } else {
+      document.getElementById('rev-req-tbody').innerHTML = lev.requerimientos.map(r => {
+        const g = REQUERIMIENTOS_GRUPOS[r.grupo] || { nombre: r.grupo };
+        return `
+          <tr>
+            <td class="mono">${r.codigo}</td>
+            <td>${r.nombre}</td>
+            <td><span class="badge badge-v">${g.nombre || r.grupo}</span></td>
+            <td class="money mono">${r.cantidad}</td>
+            <td>${r.unidad}</td>
+          </tr>`;
+      }).join('');
+    }
+
+    // KPIs técnicos
+    const cantEquipos = lev.items.reduce((s, i) => s + i.cantidad, 0);
+    const familiasUnicas = new Set(lev.items.map(it => {
+      const p = CATALOGO.find(x => x.id === it.producto_id);
+      return p?.familia;
+    })).size;
+
+    document.getElementById('resumen-tecnico-grid').innerHTML = `
+      <div class="stat-card">
+        <div class="label">Equipos totales</div>
+        <div class="value">${cantEquipos}</div>
+        <div class="delta">${lev.items.length} líneas distintas</div>
+      </div>
+      <div class="stat-card cool">
+        <div class="label">Familias</div>
+        <div class="value">${familiasUnicas}</div>
+        <div class="delta">tipos de equipos</div>
+      </div>
+      <div class="stat-card warn">
+        <div class="label">Metros de instalación</div>
+        <div class="value">${totalM.toFixed(0)}</div>
+        <div class="delta">tubería + cableado</div>
+      </div>
+      <div class="stat-card success">
+        <div class="label">Adicionales</div>
+        <div class="value">${lev.requerimientos.length}</div>
+        <div class="delta">conceptos extra</div>
+      </div>
+    `;
+  }
+
+  function regresarALevantamiento() {
+    if (!confirm('¿Regresar a edición? Se restaurará el levantamiento y podrás modificarlo.')) return;
+    // Restaurar en el storage de levantamiento
+    sessionStorage.setItem('totem_levantamiento_actual', JSON.stringify({
+      lev: dataRevision.lev,
+      nextLevId: 999,
+      nextReqId: 999,
+    }));
+    sessionStorage.removeItem('totem_lev_para_revision');
+    window.location.href = 'levantamiento.html';
+  }
+
+  function aprobarYCotizar() {
+    if (!confirm('¿Aprobar este levantamiento y pasar a cotización? Los precios y márgenes se definen en el siguiente paso.')) return;
+    // Pasar al paso de cotización
+    sessionStorage.setItem('totem_lev_aprobado', JSON.stringify({
+      lev: dataRevision.lev,
+      aprobado_en: new Date().toISOString(),
+      aprobado_por: window.auth?.profile?.nombre || 'desconocido',
+    }));
+    sessionStorage.removeItem('totem_lev_para_revision');
+    window.location.href = 'cotizacion.html';
+  }
+</script>
+
+</body>
+</html>
