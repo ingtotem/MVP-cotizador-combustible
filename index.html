@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="pragma" content="no-cache" />
+  <meta http-equiv="expires" content="0" />
+  <meta http-equiv="refresh" content="0; url=app.html" />
+  <title>TOTEM · Cargando...</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+      background: #f7f8fa;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    .loading {
+      padding: 40px;
+    }
+    .logo {
+      width: 60px; height: 60px;
+      background: #0F4C81;
+      color: white;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    h1 { font-size: 18px; color: #0f172a; margin: 8px 0; }
+    p { font-size: 13px; margin: 4px 0; }
+    a { color: #0F4C81; }
+  </style>
+</head>
+<body>
+  <div class="loading">
+    <div class="logo">T</div>
+    <h1>TOTEM Cotizador</h1>
+    <p>Cargando aplicación...</p>
+    <p style="margin-top:20px;font-size:11px;">
+      Si esta página no carga automáticamente,
+      <a href="app.html">haz click aquí</a>.
+    </p>
+  </div>
+  <script>
+    // Redirect inmediato con timestamp para forzar cache miss
+    window.location.replace('app.html?t=' + Date.now());
+  </script>
+</body>
+</html>
