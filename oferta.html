@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cotización · TOTEM</title>
+  <link rel="stylesheet" href="css/styles.css?v=20260526" />
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark">T</div>
+    <div class="brand-name">TOTEM</div>
+    <span class="brand-tag">Control de Combustible</span>
+  </div>
+  <nav class="nav-tabs">
+    <a href="index.html">Dashboard</a>
+    <a href="levantamiento.html">Levantamiento</a>
+    <a href="revision.html">Revisión</a>
+    <a href="cotizacion.html">Cotización</a>
+    <a href="prospectos.html">Prospectos</a>
+    <a href="mantenimiento.html" id="nav-mant" style="display:none;">Mantenimiento</a>
+  </nav>
+  <div class="user-chip" id="user-chip">
+    <span id="user-name">—</span>
+    <span class="role" id="user-rol">···</span>
+  </div>
+</header>
+
+<main class="app-main">
+  <div class="empty-state">
+    <h2>Redirigiendo…</h2>
+    <p id="msg">Verificando estado del flujo.</p>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js?v=20260526"></script>
+<script src="js/auth.js?v=20260526"></script>
+<script src="js/icons.js?v=20260526"></script>
+<script src="js/theme.js?v=20260526"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const user = await requireAuth('cotizacion');
+    if (!user) return;
+    mountThemeToggle();
+    aplicarPermisosNav();
+
+    // Decidir adónde mandar al usuario según lo que tenga en sessionStorage
+    if (sessionStorage.getItem('totem_oferta_actual')) {
+      document.getElementById('msg').textContent = 'Tienes una oferta aprobada. Vamos a la vista cliente.';
+      setTimeout(() => window.location.href = 'oferta-cliente.html', 800);
+    } else if (sessionStorage.getItem('totem_lev_aprobado')) {
+      document.getElementById('msg').textContent = 'Tienes un levantamiento aprobado. Vamos a cotizar.';
+      setTimeout(() => window.location.href = 'cotizacion.html', 800);
+    } else if (sessionStorage.getItem('totem_lev_para_revision')) {
+      document.getElementById('msg').textContent = 'Tienes un levantamiento en revisión.';
+      setTimeout(() => window.location.href = 'revision.html', 800);
+    } else if (sessionStorage.getItem('totem_levantamiento_actual')) {
+      document.getElementById('msg').textContent = 'Hay un levantamiento en curso.';
+      setTimeout(() => window.location.href = 'levantamiento.html', 800);
+    } else {
+      document.querySelector('main').innerHTML = `
+        <div class="empty-state">
+          <h2>No hay cotización en curso</h2>
+          <p>Empieza creando un levantamiento técnico.</p>
+          <a href="levantamiento.html" class="btn btn-primary">Nuevo levantamiento</a>
+        </div>`;
+    }
+  });
+</script>
+
+</body>
+</html>

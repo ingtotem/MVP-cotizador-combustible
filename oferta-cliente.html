@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Oferta para cliente · TOTEM</title>
+  <link rel="stylesheet" href="css/styles.css?v=20260526" />
+  <style>
+    @media print {
+      .app-header, .no-print { display: none !important; }
+      .app-main { padding: 0; max-width: none; }
+      .panel { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+      body { background: white; }
+      .data-table tbody tr { page-break-inside: avoid; }
+    }
+    .modo-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--r-sm);
+      background: var(--brand-primary-light);
+      color: var(--brand-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header class="app-header no-print">
+  <div class="brand">
+    <div class="brand-mark">T</div>
+    <div class="brand-name">TOTEM</div>
+    <span class="brand-tag">Control de Combustible</span>
+  </div>
+  <nav class="nav-tabs">
+    <a href="index.html">Dashboard</a>
+    <a href="levantamiento.html">Levantamiento</a>
+    <a href="revision.html">Revisión</a>
+    <a href="cotizacion.html">Cotización</a>
+    <a href="prospectos.html">Prospectos</a>
+    <a href="mantenimiento.html" id="nav-mant" style="display:none;">Mantenimiento</a>
+  </nav>
+  <div class="user-chip" id="user-chip">
+    <span id="user-name">—</span>
+    <span class="role" id="user-rol">···</span>
+  </div>
+</header>
+
+<main class="app-main">
+
+  <div class="page-head no-print">
+    <div>
+      <div class="eyebrow">PASO 4 DE 4 · Oferta final</div>
+      <h1>Propuesta comercial <span class="modo-tag" id="modo-tag">RESUMEN</span></h1>
+      <p class="subtitle">Documento aprobado, listo para enviar al cliente. Elige formato e imprime.</p>
+    </div>
+    <div class="flex-gap">
+      <a href="cotizacion.html" class="btn btn-ghost">← Ajustar cotización</a>
+      <button class="btn btn-secondary" onclick="cambiarModo('resumen')">📄 Imprimir resumen</button>
+      <button class="btn btn-secondary" onclick="cambiarModo('detalle')">📋 Imprimir detalle</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨 Imprimir / PDF</button>
+    </div>
+  </div>
+
+  <!-- HEADER de la oferta -->
+  <section class="panel" style="margin-bottom:24px;">
+    <div class="panel-body">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;">
+        <div>
+          <div class="brand-mark" style="width:60px;height:60px;font-size:28px;margin-bottom:12px;">T</div>
+          <h2>TOTEM Control de Combustible</h2>
+          <p class="text-muted" style="margin:4px 0 0;font-size:12px;">Guayaquil, Ecuador · contacto@totem.com.ec</p>
+        </div>
+        <div style="text-align:right;">
+          <div class="eyebrow">PROPUESTA COMERCIAL</div>
+          <h2 style="font-family:var(--font-mono);" id="codigo-oferta">COT-XXXX</h2>
+          <div class="text-muted" style="font-size:12px;">Fecha: <span id="fecha-oferta">—</span></div>
+          <div class="text-muted" style="font-size:12px;">Validez: <span id="validez-oferta">15 días</span></div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg-elevated);padding:16px;border-radius:var(--r-md);">
+        <label>Cliente</label>
+        <div style="font-size:18px;font-weight:600;" id="cliente-nombre">—</div>
+        <div class="text-muted" style="margin-top:8px;font-size:12px;">
+          <span id="cliente-contacto">—</span>
+          <span style="margin:0 8px;">·</span>
+          <span id="cliente-lugar">—</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODO RESUMEN -->
+  <section class="panel modo-resumen" id="modo-resumen-section" style="margin-bottom:24px;">
+    <div class="panel-head">
+      <h3>Detalle de la propuesta — Resumen</h3>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr><th>Concepto</th><th class="money">Cantidad</th><th class="money">Subtotal</th></tr>
+      </thead>
+      <tbody id="resumen-tbody"></tbody>
+    </table>
+  </section>
+
+  <!-- MODO DETALLE -->
+  <section class="panel modo-detalle" id="modo-detalle-section" style="margin-bottom:24px;display:none;">
+    <div class="panel-head">
+      <h3>Detalle de la propuesta — Por ítem</h3>
+    </div>
+
+    <!-- Equipos -->
+    <div class="panel-body" style="padding-bottom:0;">
+      <h4 style="margin-bottom:12px;color:var(--brand-primary);">EQUIPOS</h4>
+    </div>
+    <table class="data-table" style="margin-bottom:0;">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Equipo</th>
+          <th>Marca</th>
+          <th class="money">Cant.</th>
+          <th class="money">PVP unit.</th>
+          <th class="money">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody id="detalle-equipos-tbody"></tbody>
+    </table>
+
+    <!-- Materiales -->
+    <div class="panel-body" id="detalle-materiales-section" style="padding-bottom:0;">
+      <h4 style="margin:24px 0 12px;color:var(--brand-primary);">MATERIALES (tubería y cableado)</h4>
+    </div>
+    <table class="data-table" style="margin-bottom:0;" id="detalle-materiales-tabla">
+      <thead>
+        <tr>
+          <th>Material</th>
+          <th class="money">Metros</th>
+          <th class="money">Costo unit.</th>
+          <th class="money">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody id="detalle-materiales-tbody"></tbody>
+    </table>
+
+    <!-- Mano de obra -->
+    <div class="panel-body" id="detalle-mo-section" style="padding-bottom:0;">
+      <h4 style="margin:24px 0 12px;color:var(--brand-primary);">MANO DE OBRA</h4>
+    </div>
+    <table class="data-table" style="margin-bottom:0;" id="detalle-mo-tabla">
+      <thead>
+        <tr>
+          <th>Concepto</th>
+          <th class="money">Horas</th>
+          <th class="money">$ / hora</th>
+          <th class="money">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody id="detalle-mo-tbody"></tbody>
+    </table>
+
+    <!-- Requerimientos -->
+    <div class="panel-body" id="detalle-req-section" style="padding-bottom:0;">
+      <h4 style="margin:24px 0 12px;color:var(--brand-primary);">SERVICIOS ADICIONALES</h4>
+    </div>
+    <table class="data-table" id="detalle-req-tabla">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Concepto</th>
+          <th class="money">Cantidad</th>
+          <th class="money">Costo unit.</th>
+          <th class="money">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody id="detalle-req-tbody"></tbody>
+    </table>
+  </section>
+
+  <!-- TOTALES -->
+  <section class="panel">
+    <div class="panel-body">
+      <table class="data-table" style="max-width:520px;margin-left:auto;">
+        <tr><td>Subtotal</td><td class="money mono" id="cli-subtotal">$0.00</td></tr>
+        <tr><td>IVA <span class="text-muted">(<span id="cli-iva-pct">15</span>%)</span></td><td class="money mono" id="cli-iva">$0.00</td></tr>
+        <tr style="background:var(--brand-primary-light);font-weight:700;font-size:16px;">
+          <td>TOTAL</td>
+          <td class="money mono text-brand" id="cli-total">$0.00</td>
+        </tr>
+      </table>
+      <div style="margin-top:32px;padding:16px;background:var(--bg-elevated);border-radius:var(--r-md);font-size:12px;color:var(--text-secondary);">
+        <strong style="color:var(--text-primary);">Condiciones generales:</strong><br>
+        · Precios en dólares americanos (USD), incluyen IVA del 15%.<br>
+        · Validez de la oferta: 15 días calendario.<br>
+        · Forma de pago: 50% anticipo, 50% contra entrega.<br>
+        · Tiempo de entrega e instalación: a coordinar con el cliente tras aprobación.<br>
+        · Garantía de equipos: según fabricante. Soporte técnico TOTEM por 12 meses.
+      </div>
+    </div>
+  </section>
+
+  <div class="spacer-lg no-print"></div>
+  <div class="flex-between no-print">
+    <a href="cotizacion.html" class="btn btn-ghost">← Ajustar cotización</a>
+    <div class="flex-gap">
+      <button class="btn btn-secondary" onclick="cambiarModo('resumen')">📄 Resumen</button>
+      <button class="btn btn-secondary" onclick="cambiarModo('detalle')">📋 Detalle</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨 Imprimir / PDF</button>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js?v=20260526"></script>
+<script src="js/auth.js?v=20260526"></script>
+<script src="js/icons.js?v=20260526"></script>
+<script src="js/theme.js?v=20260526"></script>
+<script src="js/data.js?v=20260526"></script>
+<script>
+  let ofertaActual = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const user = await requireAuth('oferta');
+    if (!user) return;
+    mountThemeToggle();
+    aplicarPermisosNav();
+
+    await cargarDatosBase();
+
+    const oferta = JSON.parse(sessionStorage.getItem('totem_oferta_actual') || '{}');
+    if (!oferta.lev) {
+      document.querySelector('main').innerHTML = '<div class="empty-state"><h2>No hay oferta en curso</h2><p>Genera primero una cotización desde el levantamiento.</p><a href="levantamiento.html" class="btn btn-primary">Ir a levantamiento</a></div>';
+      return;
+    }
+
+    ofertaActual = oferta;
+
+    const { lev, totales } = oferta;
+    const hoy = new Date();
+
+    // Header de la oferta
+    document.getElementById('codigo-oferta').textContent = lev.proyecto.referencia || ('COT-' + hoy.getTime().toString().slice(-6));
+    document.getElementById('fecha-oferta').textContent = hoy.toLocaleDateString('es-EC');
+    document.getElementById('validez-oferta').textContent = (PARAMETROS.validez_dias || 15) + ' días';
+    document.getElementById('cliente-nombre').textContent = lev.proyecto.cliente || '—';
+    document.getElementById('cliente-contacto').textContent = lev.proyecto.contacto || '—';
+    document.getElementById('cliente-lugar').textContent = lev.proyecto.lugar || '—';
+
+    renderResumen();
+    renderDetalle();
+    renderTotales();
+
+    // Restaurar último modo elegido (default = resumen)
+    const modoGuardado = sessionStorage.getItem('totem_oferta_modo') || 'resumen';
+    cambiarModo(modoGuardado);
+  });
+
+  function cambiarModo(modo) {
+    sessionStorage.setItem('totem_oferta_modo', modo);
+    document.getElementById('modo-resumen-section').style.display = modo === 'resumen' ? '' : 'none';
+    document.getElementById('modo-detalle-section').style.display = modo === 'detalle' ? '' : 'none';
+    document.getElementById('modo-tag').textContent = modo === 'resumen' ? 'RESUMEN' : 'DETALLE POR ÍTEM';
+  }
+
+  function renderResumen() {
+    const { totales } = ofertaActual;
+    const lev = ofertaActual.lev;
+    const filas = [];
+    if (totales.equipos > 0) filas.push({ concepto: 'Equipos y dispositivos', cantidad: lev.items.length + ' equipos', subtotal: totales.equipos });
+    if (totales.materiales > 0) filas.push({ concepto: 'Materiales de instalación (tubería y cableado)', cantidad: '1 lote', subtotal: totales.materiales });
+    if (totales.mo > 0) filas.push({ concepto: 'Mano de obra de instalación', cantidad: '1 servicio', subtotal: totales.mo });
+    if (totales.req > 0) filas.push({ concepto: 'Logística, obra civil y trabajos adicionales', cantidad: '1 lote', subtotal: totales.req });
+    document.getElementById('resumen-tbody').innerHTML = filas.map(f => `
+      <tr>
+        <td><strong>${f.concepto}</strong></td>
+        <td class="money mono">${f.cantidad}</td>
+        <td class="money mono"><strong>$${f.subtotal.toFixed(2)}</strong></td>
+      </tr>`).join('');
+  }
+
+  function renderDetalle() {
+    const { lev, cotizacion } = ofertaActual;
+
+    // EQUIPOS
+    const tbodyEq = document.getElementById('detalle-equipos-tbody');
+    const lineasEq = (cotizacion?.lineas || []).filter(l => l.cat === 'equipos');
+    if (lineasEq.length > 0) {
+      tbodyEq.innerHTML = lineasEq.map(l => `
+        <tr>
+          <td class="mono"><strong>${l.sku}</strong></td>
+          <td>${l.nombre}</td>
+          <td>${l.marca || '—'}</td>
+          <td class="money mono">${l.cantidad}</td>
+          <td class="money mono">$${l.pvp_unit.toFixed(2)}</td>
+          <td class="money mono"><strong>$${(l.pvp_unit * l.cantidad).toFixed(2)}</strong></td>
+        </tr>`).join('');
+    } else {
+      // Fallback al formato viejo
+      tbodyEq.innerHTML = lev.items.map(it => {
+        const p = CATALOGO.find(x => x.id === it.producto_id);
+        if (!p) return '';
+        const sub = p.pvp * it.cantidad;
+        return `
+          <tr>
+            <td class="mono"><strong>${p.sku}</strong></td>
+            <td>${p.nombre}</td>
+            <td>${p.marca || '—'}</td>
+            <td class="money mono">${it.cantidad}</td>
+            <td class="money mono">$${p.pvp.toFixed(2)}</td>
+            <td class="money mono"><strong>$${sub.toFixed(2)}</strong></td>
+          </tr>`;
+      }).join('');
+    }
+
+    // MATERIALES (de la cotización aprobada)
+    const matSec = document.getElementById('detalle-materiales-section');
+    const matTab = document.getElementById('detalle-materiales-tabla');
+    const tbodyMat = document.getElementById('detalle-materiales-tbody');
+    const lineasMat = (cotizacion?.lineas || []).filter(l => l.cat === 'materiales');
+    if (lineasMat.length > 0) {
+      matSec.style.display = '';
+      matTab.style.display = '';
+      tbodyMat.innerHTML = lineasMat.map(l => `
+        <tr>
+          <td>${l.nombre}</td>
+          <td class="money mono">${l.cantidad} ${l.unidad || ''}</td>
+          <td class="money mono">$${l.pvp_unit.toFixed(2)}</td>
+          <td class="money mono"><strong>$${(l.pvp_unit * l.cantidad).toFixed(2)}</strong></td>
+        </tr>`).join('');
+    } else {
+      matSec.style.display = 'none';
+      matTab.style.display = 'none';
+    }
+
+    // MO
+    const moSec = document.getElementById('detalle-mo-section');
+    const moTab = document.getElementById('detalle-mo-tabla');
+    const tbodyMo = document.getElementById('detalle-mo-tbody');
+    const lineasMo = (cotizacion?.lineas || []).filter(l => l.cat === 'mo');
+    if (lineasMo.length > 0) {
+      moSec.style.display = '';
+      moTab.style.display = '';
+      tbodyMo.innerHTML = lineasMo.map(l => `
+        <tr>
+          <td>${l.nombre}</td>
+          <td class="money mono">${l.cantidad}</td>
+          <td class="money mono">$${l.pvp_unit.toFixed(2)}</td>
+          <td class="money mono"><strong>$${(l.pvp_unit * l.cantidad).toFixed(2)}</strong></td>
+        </tr>`).join('');
+    } else {
+      moSec.style.display = 'none';
+      moTab.style.display = 'none';
+    }
+
+    // ADICIONALES
+    const reqSec = document.getElementById('detalle-req-section');
+    const reqTab = document.getElementById('detalle-req-tabla');
+    const tbodyReq = document.getElementById('detalle-req-tbody');
+    const lineasAdic = (cotizacion?.lineas || []).filter(l => l.cat === 'adic');
+    if (lineasAdic.length > 0) {
+      reqSec.style.display = '';
+      reqTab.style.display = '';
+      tbodyReq.innerHTML = lineasAdic.map(l => `
+        <tr>
+          <td class="mono">${l.sku}</td>
+          <td>${l.nombre}</td>
+          <td class="money mono">${l.cantidad} ${l.unidad || ''}</td>
+          <td class="money mono">$${l.pvp_unit.toFixed(2)}</td>
+          <td class="money mono"><strong>$${(l.pvp_unit * l.cantidad).toFixed(2)}</strong></td>
+        </tr>`).join('');
+    } else {
+      reqSec.style.display = 'none';
+      reqTab.style.display = 'none';
+    }
+  }
+
+  function renderTotales() {
+    const { totales } = ofertaActual;
+    document.getElementById('cli-subtotal').textContent = '$' + totales.subtotal.toFixed(2);
+    document.getElementById('cli-iva-pct').textContent = ((PARAMETROS.iva || 0.15) * 100).toFixed(0);
+    document.getElementById('cli-iva').textContent = '$' + totales.iva.toFixed(2);
+    document.getElementById('cli-total').textContent = '$' + totales.total.toLocaleString('es-EC', { minimumFractionDigits: 2 });
+  }
+</script>
+
+</body>
+</html>

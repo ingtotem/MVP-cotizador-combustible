@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cotización · TOTEM</title>
+  <link rel="stylesheet" href="css/styles.css?v=20260526" />
+  <style>
+    .cot-banner {
+      background: linear-gradient(90deg, rgba(15,76,129,0.06), transparent);
+      border-left: 4px solid var(--brand-primary);
+      padding: 12px 16px;
+      border-radius: var(--r-md);
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .cot-controls {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--s-3);
+      margin-bottom: var(--s-4);
+    }
+    @media (max-width: 900px) { .cot-controls { grid-template-columns: 1fr 1fr; } }
+    .cot-control {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-md);
+      padding: 12px;
+    }
+    .cot-control label {
+      display: block;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .cot-control input {
+      padding: 4px 8px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 600;
+      text-align: right;
+    }
+    .cot-table th, .cot-table td { vertical-align: middle; }
+    .cot-table .price-input {
+      padding: 4px 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-align: right;
+      width: 100%;
+      min-width: 80px;
+    }
+    .cot-table .margen-input {
+      padding: 4px 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-align: right;
+      width: 64px;
+    }
+    .row-cat {
+      background: var(--brand-primary-light) !important;
+      font-weight: 600;
+      color: var(--brand-primary);
+    }
+    .row-cat td { padding: 10px 16px !important; }
+    .totales-final {
+      background: var(--bg-elevated);
+      padding: 20px;
+      border-radius: var(--r-lg);
+    }
+    .totales-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      align-items: center;
+    }
+    .totales-row:last-child { border-bottom: none; }
+    .totales-row.grand-total {
+      background: var(--brand-primary);
+      color: white;
+      padding: 16px;
+      margin-top: 12px;
+      border-radius: var(--r-md);
+    }
+    .totales-row.grand-total .lbl { font-weight: 700; font-size: 15px; }
+    .totales-row.grand-total .val { font-weight: 700; font-size: 18px; }
+    .descuento-banner {
+      background: rgba(245, 158, 11, 0.12);
+      border-left: 3px solid var(--accent-warning);
+      padding: 8px 12px;
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark">T</div>
+    <div class="brand-name">TOTEM</div>
+    <span class="brand-tag">Control de Combustible</span>
+  </div>
+  <nav class="nav-tabs">
+    <a href="index.html">Dashboard</a>
+    <a href="levantamiento.html">Levantamiento</a>
+    <a href="revision.html">Revisión</a>
+    <a href="cotizacion.html" class="active">Cotización</a>
+    <a href="prospectos.html">Prospectos</a>
+    <a href="mantenimiento.html" id="nav-mant" style="display:none;">Mantenimiento</a>
+  </nav>
+  <div class="user-chip" id="user-chip">
+    <span id="user-name">—</span>
+    <span class="role" id="user-rol">···</span>
+  </div>
+</header>
+
+<main class="app-main">
+
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">PASO 3 DE 4 · Cotización comercial</div>
+      <h1>Cotización · costos, márgenes y PVP</h1>
+      <p class="subtitle" id="cot-subtitle">Ajusta márgenes por categoría y descuentos globales.</p>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-secondary" onclick="regresarADiseno()">← Regresar a diseño</button>
+      <button class="btn btn-primary" onclick="aprobarYGenerarOferta()">Aprobar oferta →</button>
+    </div>
+  </div>
+
+  <div class="cot-banner">
+    <strong style="color:var(--brand-primary);">💼 Vista interna</strong> · Edita márgenes por categoría o ajusta PVP línea por línea. Los costos vienen del catálogo.
+  </div>
+
+  <!-- CONTROLES DE MÁRGENES -->
+  <section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-head">
+      <h3><span class="num">M</span> Márgenes por categoría y descuento global</h3>
+    </div>
+    <div class="panel-body">
+      <div class="cot-controls">
+        <div class="cot-control">
+          <label>Margen Equipos %</label>
+          <input id="margen-equipos" type="number" min="0" max="80" step="1" value="30" />
+        </div>
+        <div class="cot-control">
+          <label>Margen Materiales %</label>
+          <input id="margen-materiales" type="number" min="0" max="80" step="1" value="35" />
+        </div>
+        <div class="cot-control">
+          <label>Margen Mano de Obra %</label>
+          <input id="margen-mo" type="number" min="0" max="80" step="1" value="35" />
+        </div>
+        <div class="cot-control">
+          <label>Margen Adicionales %</label>
+          <input id="margen-adic" type="number" min="0" max="80" step="1" value="0" />
+        </div>
+      </div>
+      <div class="cot-controls" style="grid-template-columns: 1fr 1fr; margin-top:8px;">
+        <div class="cot-control">
+          <label>Descuento global %</label>
+          <input id="descuento" type="number" min="0" max="50" step="0.5" value="0" />
+        </div>
+        <div class="cot-control">
+          <label>IVA %</label>
+          <input id="iva" type="number" min="0" max="30" step="0.5" value="15" />
+        </div>
+      </div>
+      <p class="text-muted" style="font-size:11px;margin:8px 0 0;">
+        💡 PVP se calcula así: <strong>PVP = Costo / (1 - margen%)</strong>. Cambia un margen y todas las líneas de esa categoría se recalculan.
+      </p>
+    </div>
+  </section>
+
+  <!-- TABLA DETALLE EDITABLE -->
+  <section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-head">
+      <h3><span class="num">D</span> Detalle editable (costo · margen · PVP)</h3>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="data-table cot-table" id="tabla-cotizacion">
+        <thead>
+          <tr>
+            <th style="min-width:80px;">SKU / Cód.</th>
+            <th style="min-width:200px;">Concepto</th>
+            <th class="money" style="width:60px;">Cant.</th>
+            <th class="money" style="width:90px;">Costo unit.</th>
+            <th class="money" style="width:100px;">Costo total</th>
+            <th class="money" style="width:80px;">Margen %</th>
+            <th class="money" style="width:90px;">PVP unit.</th>
+            <th class="money" style="width:110px;">PVP total</th>
+          </tr>
+        </thead>
+        <tbody id="cot-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TOTALES -->
+  <section class="panel">
+    <div class="panel-head">
+      <h3><span class="num">T</span> Totales de la oferta</h3>
+    </div>
+    <div class="panel-body">
+      <div class="totales-final">
+        <div class="totales-row">
+          <div class="lbl">Subtotal Equipos</div>
+          <div class="mono text-muted" id="costo-equipos">Costo $0.00</div>
+          <div class="money mono" id="pvp-equipos">$0.00</div>
+        </div>
+        <div class="totales-row">
+          <div class="lbl">Subtotal Materiales</div>
+          <div class="mono text-muted" id="costo-materiales">Costo $0.00</div>
+          <div class="money mono" id="pvp-materiales">$0.00</div>
+        </div>
+        <div class="totales-row">
+          <div class="lbl">Subtotal Mano de Obra</div>
+          <div class="mono text-muted" id="costo-mo">Costo $0.00</div>
+          <div class="money mono" id="pvp-mo">$0.00</div>
+        </div>
+        <div class="totales-row">
+          <div class="lbl">Subtotal Adicionales</div>
+          <div class="mono text-muted" id="costo-adic">Costo $0.00</div>
+          <div class="money mono" id="pvp-adic">$0.00</div>
+        </div>
+        <div class="totales-row" style="font-weight:600;border-top:2px solid var(--border-default);margin-top:8px;padding-top:12px;">
+          <div class="lbl">Subtotal</div>
+          <div class="mono text-muted" id="costo-total">Costo $0.00</div>
+          <div class="money mono" id="pvp-subtotal">$0.00</div>
+        </div>
+        <div class="totales-row" id="row-descuento" style="display:none;">
+          <div class="lbl">Descuento aplicado <span class="text-muted" id="desc-pct">(0%)</span></div>
+          <div></div>
+          <div class="money mono text-error" id="desc-monto">-$0.00</div>
+        </div>
+        <div class="totales-row">
+          <div class="lbl">Subtotal final</div>
+          <div class="mono text-muted" id="utilidad-info">Utilidad: $0.00</div>
+          <div class="money mono" id="subtotal-final">$0.00</div>
+        </div>
+        <div class="totales-row">
+          <div class="lbl">IVA <span class="text-muted" id="iva-pct">(15%)</span></div>
+          <div></div>
+          <div class="money mono" id="iva-monto">$0.00</div>
+        </div>
+        <div class="totales-row grand-total">
+          <div class="lbl">TOTAL PROPUESTA</div>
+          <div class="mono" style="opacity:0.85;font-size:12px;" id="margen-real">Margen efectivo: —</div>
+          <div class="val money mono" id="total-final">$0.00</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="spacer-lg"></div>
+  <div class="flex-between">
+    <button class="btn btn-secondary" onclick="regresarADiseno()">← Regresar a diseño</button>
+    <button class="btn btn-primary" onclick="aprobarYGenerarOferta()">Aprobar oferta →</button>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js?v=20260526"></script>
+<script src="js/auth.js?v=20260526"></script>
+<script src="js/icons.js?v=20260526"></script>
+<script src="js/theme.js?v=20260526"></script>
+<script src="js/data.js?v=20260526"></script>
+<script>
+  // Estado de la cotización
+  let cot = {
+    lev: null,
+    lineas: [],          // [{tipo, cat, sku, nombre, cantidad, costo_unit, margen_pct, pvp_unit, _editado_pvp}]
+    margenes: { equipos: 30, materiales: 35, mo: 35, adic: 0 },
+    descuento: 0,
+    iva: 15,
+  };
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const user = await requireAuth('cotizacion');
+    if (!user) return;
+    mountThemeToggle();
+    aplicarPermisosNav();
+
+    const ok = await cargarDatosBase();
+    if (!ok) return;
+
+    const raw = sessionStorage.getItem('totem_lev_aprobado');
+    if (!raw) {
+      document.querySelector('main').innerHTML = `
+        <div class="empty-state">
+          <h2>No hay levantamiento aprobado</h2>
+          <p>Primero crea un levantamiento, envíalo a revisión y apruébalo.</p>
+          <a href="levantamiento.html" class="btn btn-primary">Ir a levantamiento</a>
+        </div>`;
+      return;
+    }
+    cot.lev = JSON.parse(raw).lev;
+    cot.iva = ((PARAMETROS.iva || 0.15) * 100);
+    document.getElementById('iva').value = cot.iva;
+
+    construirLineas();
+    pintarTabla();
+
+    // Bind de los controles
+    ['equipos','materiales','mo','adic'].forEach(cat => {
+      document.getElementById('margen-' + cat).addEventListener('input', e => {
+        cot.margenes[cat] = Number(e.target.value) || 0;
+        recalcularLineas(cat);
+        pintarTabla();
+      });
+    });
+    document.getElementById('descuento').addEventListener('input', e => {
+      cot.descuento = Number(e.target.value) || 0;
+      pintarTabla();
+    });
+    document.getElementById('iva').addEventListener('input', e => {
+      cot.iva = Number(e.target.value) || 0;
+      pintarTabla();
+    });
+
+    document.getElementById('cot-subtitle').textContent =
+      `Cliente: ${cot.lev.proyecto.cliente} · ${cot.lev.items.length} equipos`;
+  });
+
+  // ===== Construir todas las líneas (equipos + materiales + MO + adicionales) =====
+  function construirLineas() {
+    cot.lineas = [];
+
+    // 1. EQUIPOS
+    cot.lev.items.forEach(it => {
+      const p = CATALOGO.find(x => x.id === it.producto_id);
+      if (!p) return;
+      // Margen implícito desde costo y pvp: pvp = costo / (1 - m) → m = 1 - costo/pvp
+      const margenCatalogo = p.pvp > 0 ? (1 - (p.costo / p.pvp)) * 100 : cot.margenes.equipos;
+      cot.lineas.push({
+        tipo: 'equipo',
+        cat: 'equipos',
+        sku: p.sku,
+        nombre: p.nombre + (p.caracteristica_label ? ' · ' + p.caracteristica_label : ''),
+        marca: p.marca,
+        cantidad: it.cantidad,
+        costo_unit: p.costo,
+        margen_pct: Math.round(margenCatalogo * 10) / 10,
+        pvp_unit: p.pvp,
+        _producto_id: p.id,
+      });
+    });
+
+    // 2. MATERIALES (tubos + cables agregados)
+    const materialesAgg = {};
+    cot.lev.items.forEach(it => {
+      if (it.tipo_tubo && it.tipo_tubo !== 'NINGUNO' && it.m_tubo > 0) {
+        const t = RECETAS_TUBO[it.tipo_tubo];
+        if (t) {
+          const key = 'TUB-' + it.tipo_tubo;
+          if (!materialesAgg[key]) materialesAgg[key] = { sku: key, nombre: 'Tubo ' + t.nombre, costo_unit: t.costo_m, cantidad: 0, unidad: 'm' };
+          materialesAgg[key].cantidad += it.m_tubo * it.cantidad;
+        }
+      }
+      ['instr','datos','elec'].forEach(t => {
+        const codigo = it['cable_' + t];
+        const m = it['m_cable_' + t];
+        if (codigo && codigo !== 'NINGUNO' && m > 0) {
+          const c = RECETAS_CABLE[codigo];
+          if (c) {
+            const key = 'CAB-' + codigo;
+            if (!materialesAgg[key]) materialesAgg[key] = { sku: key, nombre: c.nombre, costo_unit: c.costo_m, cantidad: 0, unidad: 'm' };
+            materialesAgg[key].cantidad += m * it.cantidad;
+          }
+        }
+      });
+    });
+    Object.values(materialesAgg).forEach(m => {
+      cot.lineas.push({
+        tipo: 'material',
+        cat: 'materiales',
+        sku: m.sku,
+        nombre: m.nombre,
+        cantidad: m.cantidad,
+        costo_unit: m.costo_unit,
+        margen_pct: cot.margenes.materiales,
+        pvp_unit: m.costo_unit / (1 - cot.margenes.materiales / 100),
+        unidad: m.unidad,
+      });
+    });
+
+    // 3. MANO DE OBRA (agrupada por categoría)
+    const moAgg = {};
+    const moWarnings = [];
+    cot.lev.items.forEach(it => {
+      const p = CATALOGO.find(x => x.id === it.producto_id);
+      if (!p) return;
+      const cat = p.categoria_mo || p.grupo;
+      if (!cat) {
+        moWarnings.push(`${p.sku} ${p.nombre}: sin categoría MO ni grupo`);
+        return;
+      }
+      const r = RECETAS_MANO_OBRA[cat];
+      if (!r) {
+        moWarnings.push(`${p.sku} ${p.nombre}: no hay receta para categoría "${cat}". Ve a Mantenimiento → Recetas → MO y agrégala.`);
+        return;
+      }
+      const horas = r.horas_base * (it.altura_mayor_3m ? r.factor_altura : 1) * it.cantidad;
+      const costo = horas * r.costo_hora;
+      const key = 'MO-' + cat;
+      if (!moAgg[key]) moAgg[key] = { sku: key, nombre: 'Mano de obra · ' + cat, costo: 0, horas: 0, costo_hora: r.costo_hora };
+      moAgg[key].costo += costo;
+      moAgg[key].horas += horas;
+    });
+    if (moWarnings.length > 0) {
+      console.warn('[MO] Productos sin MO calculable:', moWarnings);
+      // Mostrar warning visible
+      setTimeout(() => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:rgba(245,158,11,0.12);border-left:3px solid var(--accent-warning);padding:12px 16px;margin:12px 0;border-radius:6px;font-size:12px;';
+        w.innerHTML = `⚠ <strong>Mano de obra no calculada para algunos productos:</strong><br>` +
+          moWarnings.map(w => '· ' + w).join('<br>') +
+          `<br><br><a href="mantenimiento.html" class="btn btn-sm btn-secondary">Ir a Mantenimiento</a>`;
+        const main = document.querySelector('.cot-banner');
+        if (main) main.parentNode.insertBefore(w, main.nextSibling);
+      }, 500);
+    }
+    Object.values(moAgg).forEach(m => {
+      cot.lineas.push({
+        tipo: 'mo',
+        cat: 'mo',
+        sku: m.sku,
+        nombre: m.nombre,
+        cantidad: Math.round(m.horas * 10) / 10,
+        costo_unit: m.costo_hora,
+        margen_pct: cot.margenes.mo,
+        pvp_unit: m.costo_hora / (1 - cot.margenes.mo / 100),
+        unidad: 'h',
+      });
+    });
+
+    // 4. ADICIONALES
+    (cot.lev.requerimientos || []).forEach(r => {
+      const adic = COSTOS_ADICIONALES.find(a => a.id === r.adic_id);
+      if (!adic) return;
+      cot.lineas.push({
+        tipo: 'adicional',
+        cat: 'adic',
+        sku: adic.codigo,
+        nombre: adic.nombre,
+        cantidad: r.cantidad,
+        costo_unit: adic.costo,
+        margen_pct: cot.margenes.adic,
+        pvp_unit: cot.margenes.adic > 0 ? adic.costo / (1 - cot.margenes.adic / 100) : adic.costo,
+        unidad: r.unidad,
+      });
+    });
+  }
+
+  // Recalcular PVP de todas las líneas de una categoría según su margen
+  function recalcularLineas(cat) {
+    const m = cot.margenes[cat];
+    cot.lineas.forEach(l => {
+      if (l.cat === cat) {
+        l.margen_pct = m;
+        l.pvp_unit = m > 0 ? l.costo_unit / (1 - m / 100) : l.costo_unit;
+      }
+    });
+  }
+
+  function pintarTabla() {
+    const tbody = document.getElementById('cot-tbody');
+    if (!tbody) return;
+
+    const cats = [
+      { key: 'equipos', label: 'EQUIPOS Y DISPOSITIVOS' },
+      { key: 'materiales', label: 'MATERIALES (TUBERÍA Y CABLEADO)' },
+      { key: 'mo', label: 'MANO DE OBRA' },
+      { key: 'adic', label: 'ADICIONALES (LOGÍSTICA, OBRA CIVIL)' },
+    ];
+
+    let html = '';
+    cats.forEach(c => {
+      const lineas = cot.lineas.filter(l => l.cat === c.key);
+      if (lineas.length === 0) return;
+      html += `<tr class="row-cat"><td colspan="8">${c.label}</td></tr>`;
+      lineas.forEach((l, idx) => {
+        const idxAbs = cot.lineas.indexOf(l);
+        const costoTotal = l.costo_unit * l.cantidad;
+        const pvpTotal = l.pvp_unit * l.cantidad;
+        html += `
+          <tr>
+            <td class="mono"><strong>${l.sku}</strong></td>
+            <td>${l.nombre}${l.unidad ? ' <span class="text-muted" style="font-size:10px;">' + l.unidad + '</span>' : ''}</td>
+            <td class="money mono">${l.cantidad}</td>
+            <td class="money mono">$${l.costo_unit.toFixed(2)}</td>
+            <td class="money mono text-muted">$${costoTotal.toFixed(2)}</td>
+            <td class="money">
+              <input class="margen-input" type="number" min="0" max="80" step="0.5" value="${l.margen_pct.toFixed(1)}" oninput="actualizarMargenLinea(${idxAbs}, this.value)" />
+            </td>
+            <td class="money">
+              <input class="price-input" type="number" min="0" step="0.01" value="${l.pvp_unit.toFixed(2)}" oninput="actualizarPvpLinea(${idxAbs}, this.value)" />
+            </td>
+            <td class="money mono"><strong>$${pvpTotal.toFixed(2)}</strong></td>
+          </tr>`;
+      });
+    });
+
+    if (!html) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-muted" style="text-align:center;padding:32px;">Sin líneas. Verifica el levantamiento.</td></tr>`;
+    } else {
+      tbody.innerHTML = html;
+    }
+
+    pintarTotales();
+  }
+
+  window.actualizarMargenLinea = function(idx, v) {
+    const l = cot.lineas[idx];
+    if (!l) return;
+    l.margen_pct = Number(v) || 0;
+    l.pvp_unit = l.margen_pct > 0 ? l.costo_unit / (1 - l.margen_pct / 100) : l.costo_unit;
+    // Actualizar solo la fila (no repintar todo, para no perder foco)
+    const trs = document.querySelectorAll('#cot-tbody tr:not(.row-cat)');
+    // Encontrar la fila correcta por posición
+    pintarTotales();
+    // Actualizar el PVP unit en la misma fila
+    const inputs = document.querySelectorAll('#cot-tbody .price-input');
+    if (inputs[posicionRealEnTabla(idx)]) inputs[posicionRealEnTabla(idx)].value = l.pvp_unit.toFixed(2);
+    // Actualizar el PVP total (última celda)
+    const tdTotal = document.querySelectorAll('#cot-tbody tr:not(.row-cat) td:last-child strong');
+    if (tdTotal[posicionRealEnTabla(idx)]) tdTotal[posicionRealEnTabla(idx)].textContent = '$' + (l.pvp_unit * l.cantidad).toFixed(2);
+  };
+
+  window.actualizarPvpLinea = function(idx, v) {
+    const l = cot.lineas[idx];
+    if (!l) return;
+    l.pvp_unit = Number(v) || 0;
+    // Calcular nuevo margen efectivo
+    if (l.costo_unit > 0 && l.pvp_unit > 0) {
+      l.margen_pct = Math.round((1 - l.costo_unit / l.pvp_unit) * 100 * 10) / 10;
+    } else {
+      l.margen_pct = 0;
+    }
+    pintarTotales();
+    // Refrescar margen y total en la misma fila
+    const inputsM = document.querySelectorAll('#cot-tbody .margen-input');
+    if (inputsM[posicionRealEnTabla(idx)]) inputsM[posicionRealEnTabla(idx)].value = l.margen_pct.toFixed(1);
+    const tdTotal = document.querySelectorAll('#cot-tbody tr:not(.row-cat) td:last-child strong');
+    if (tdTotal[posicionRealEnTabla(idx)]) tdTotal[posicionRealEnTabla(idx)].textContent = '$' + (l.pvp_unit * l.cantidad).toFixed(2);
+  };
+
+  // Mapeo de índice absoluto a posición visible (saltando rows de categoría)
+  function posicionRealEnTabla(idxAbs) {
+    let pos = 0;
+    for (let i = 0; i < cot.lineas.length; i++) {
+      if (i === idxAbs) return pos;
+      pos++;
+    }
+    return pos;
+  }
+
+  function pintarTotales() {
+    const cats = ['equipos','materiales','mo','adic'];
+    const totales = { equipos: { costo: 0, pvp: 0 }, materiales: { costo: 0, pvp: 0 }, mo: { costo: 0, pvp: 0 }, adic: { costo: 0, pvp: 0 } };
+
+    cot.lineas.forEach(l => {
+      totales[l.cat].costo += l.costo_unit * l.cantidad;
+      totales[l.cat].pvp += l.pvp_unit * l.cantidad;
+    });
+
+    document.getElementById('costo-equipos').textContent = 'Costo $' + totales.equipos.costo.toFixed(2);
+    document.getElementById('pvp-equipos').textContent = '$' + totales.equipos.pvp.toFixed(2);
+    document.getElementById('costo-materiales').textContent = 'Costo $' + totales.materiales.costo.toFixed(2);
+    document.getElementById('pvp-materiales').textContent = '$' + totales.materiales.pvp.toFixed(2);
+    document.getElementById('costo-mo').textContent = 'Costo $' + totales.mo.costo.toFixed(2);
+    document.getElementById('pvp-mo').textContent = '$' + totales.mo.pvp.toFixed(2);
+    document.getElementById('costo-adic').textContent = 'Costo $' + totales.adic.costo.toFixed(2);
+    document.getElementById('pvp-adic').textContent = '$' + totales.adic.pvp.toFixed(2);
+
+    const costoTotal = totales.equipos.costo + totales.materiales.costo + totales.mo.costo + totales.adic.costo;
+    const pvpSubtotal = totales.equipos.pvp + totales.materiales.pvp + totales.mo.pvp + totales.adic.pvp;
+    document.getElementById('costo-total').textContent = 'Costo $' + costoTotal.toFixed(2);
+    document.getElementById('pvp-subtotal').textContent = '$' + pvpSubtotal.toFixed(2);
+
+    const descMonto = pvpSubtotal * (cot.descuento / 100);
+    const rowDesc = document.getElementById('row-descuento');
+    if (cot.descuento > 0) {
+      rowDesc.style.display = '';
+      document.getElementById('desc-pct').textContent = '(' + cot.descuento + '%)';
+      document.getElementById('desc-monto').textContent = '-$' + descMonto.toFixed(2);
+    } else {
+      rowDesc.style.display = 'none';
+    }
+
+    const subtotalFinal = pvpSubtotal - descMonto;
+    const utilidad = subtotalFinal - costoTotal;
+    const margenEfectivo = subtotalFinal > 0 ? (utilidad / subtotalFinal) * 100 : 0;
+    const ivaMonto = subtotalFinal * (cot.iva / 100);
+    const totalFinal = subtotalFinal + ivaMonto;
+
+    document.getElementById('subtotal-final').textContent = '$' + subtotalFinal.toFixed(2);
+    document.getElementById('utilidad-info').textContent = 'Utilidad: $' + utilidad.toFixed(2);
+    document.getElementById('iva-pct').textContent = '(' + cot.iva + '%)';
+    document.getElementById('iva-monto').textContent = '$' + ivaMonto.toFixed(2);
+    document.getElementById('total-final').textContent = '$' + totalFinal.toLocaleString('es-EC', { minimumFractionDigits: 2 });
+    document.getElementById('margen-real').textContent = 'Margen efectivo: ' + margenEfectivo.toFixed(1) + '%';
+  }
+
+  function regresarADiseno() {
+    if (!confirm('¿Regresar a diseño técnico? Tendrás que volver a revisar y aprobar para regresar a esta pantalla.')) return;
+    // Restaurar el levantamiento para edición
+    sessionStorage.setItem('totem_levantamiento_actual', JSON.stringify({
+      lev: cot.lev, nextLevId: 999, nextReqId: 999,
+    }));
+    sessionStorage.removeItem('totem_lev_aprobado');
+    window.location.href = 'levantamiento.html';
+  }
+
+  function aprobarYGenerarOferta() {
+    if (!confirm('¿Aprobar esta cotización y generar la oferta para el cliente?')) return;
+
+    // Construir el objeto oferta con totales
+    const cats = ['equipos','materiales','mo','adic'];
+    const totales = { equipos: 0, materiales: 0, mo: 0, adic: 0 };
+    cot.lineas.forEach(l => totales[l.cat] += l.pvp_unit * l.cantidad);
+
+    const pvpSubtotal = totales.equipos + totales.materiales + totales.mo + totales.adic;
+    const descMonto = pvpSubtotal * (cot.descuento / 100);
+    const subtotalFinal = pvpSubtotal - descMonto;
+    const iva = subtotalFinal * (cot.iva / 100);
+    const total = subtotalFinal + iva;
+
+    const ofertaCliente = {
+      lev: cot.lev,
+      cotizacion: {
+        lineas: cot.lineas,
+        margenes: cot.margenes,
+        descuento: cot.descuento,
+        iva: cot.iva,
+      },
+      totales: {
+        equipos: totales.equipos,
+        materiales: totales.materiales,
+        mo: totales.mo,
+        req: totales.adic,
+        subtotal_antes_descuento: pvpSubtotal,
+        descuento_monto: descMonto,
+        subtotal: subtotalFinal,
+        iva: iva,
+        total: total,
+      },
+      detalles: { mat: [], mo: [] }, // ya no se necesita el viejo formato
+    };
+
+    sessionStorage.setItem('totem_oferta_actual', JSON.stringify(ofertaCliente));
+    sessionStorage.removeItem('totem_lev_aprobado');
+    window.location.href = 'oferta-cliente.html';
+  }
+</script>
+
+</body>
+</html>
