@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard · TOTEM</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark">T</div>
+    <div class="brand-name">TOTEM</div>
+    <span class="brand-tag">Control de Combustible</span>
+  </div>
+  <nav class="nav-tabs">
+    <a href="index.html" class="active">Dashboard</a>
+    <a href="levantamiento.html">Levantamiento</a>
+    <a href="oferta.html">Cotización</a>
+    <a href="proyectos.html">Proyectos</a>
+    <a href="mantenimiento.html" id="nav-mant" style="display:none;">Mantenimiento</a>
+  </nav>
+  <div class="user-chip" id="user-chip">
+    <span id="user-name">—</span>
+    <span class="role" id="user-rol">···</span>
+  </div>
+</header>
+
+<main class="app-main">
+
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">Inicio</div>
+      <h1>Bienvenido, <span id="welcome-name">colaborador</span></h1>
+      <p class="subtitle">Panel general del flujo de ofertas y proyectos activos.</p>
+    </div>
+    <div class="flex-gap">
+      <a href="levantamiento.html" class="btn btn-secondary">Nuevo levantamiento</a>
+      <a href="oferta.html" class="btn btn-primary">Nueva cotización</a>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid grid-4" style="margin-bottom:24px;">
+    <div class="stat-card">
+      <div class="label">Ofertas activas</div>
+      <div class="value" id="kpi-activas">—</div>
+      <div class="delta">en borrador o enviadas</div>
+    </div>
+    <div class="stat-card cool">
+      <div class="label">Aprobadas (mes)</div>
+      <div class="value" id="kpi-aprobadas">—</div>
+      <div class="delta">cerradas exitosamente</div>
+    </div>
+    <div class="stat-card warn">
+      <div class="label">Por revisar</div>
+      <div class="value" id="kpi-revisar">—</div>
+      <div class="delta">esperando aprobación</div>
+    </div>
+    <div class="stat-card success">
+      <div class="label">Pipeline (USD)</div>
+      <div class="value mono" id="kpi-pipeline">—</div>
+      <div class="delta">monto en curso</div>
+    </div>
+  </div>
+
+  <!-- Atajos -->
+  <section class="panel">
+    <div class="panel-head">
+      <h3><span class="num">→</span> Atajos rápidos</h3>
+    </div>
+    <div class="panel-body">
+      <div class="grid grid-3">
+        <a href="levantamiento.html" class="req-btn" style="text-decoration:none;">
+          <div class="req-btn-icon">📋</div>
+          <div class="req-btn-content">
+            <div class="req-btn-title">Iniciar levantamiento</div>
+            <div class="req-btn-desc">Registra datos del cliente y equipos en sitio</div>
+          </div>
+          <div class="req-btn-plus">→</div>
+        </a>
+        <a href="oferta.html" class="req-btn" style="text-decoration:none;">
+          <div class="req-btn-icon">📑</div>
+          <div class="req-btn-content">
+            <div class="req-btn-title">Cotizar</div>
+            <div class="req-btn-desc">Genera la oferta a partir del levantamiento</div>
+          </div>
+          <div class="req-btn-plus">→</div>
+        </a>
+        <a href="proyectos.html" class="req-btn" style="text-decoration:none;">
+          <div class="req-btn-icon">📊</div>
+          <div class="req-btn-content">
+            <div class="req-btn-title">Ver proyectos</div>
+            <div class="req-btn-desc">Estado del pipeline y ofertas existentes</div>
+          </div>
+          <div class="req-btn-plus">→</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/theme.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const user = await requireAuth('dashboard');
+    if (!user) return;
+    mountThemeToggle();
+    aplicarPermisosNav();
+    document.getElementById('welcome-name').textContent = user.nombre || user.rol;
+
+    // Métricas
+    try {
+      const { data, error } = await supabaseClient.from('dashboard_metricas').select('*');
+      if (!error && data) {
+        const m = data.reduce((acc, r) => ({ ...acc, [r.metrica]: r.valor }), {});
+        document.getElementById('kpi-activas').textContent = m.ofertas_activas || 0;
+        document.getElementById('kpi-aprobadas').textContent = m.aprobadas_mes || 0;
+        document.getElementById('kpi-revisar').textContent = m.por_revisar || 0;
+        document.getElementById('kpi-pipeline').textContent = '$' + Number(m.pipeline_usd || 0).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      } else {
+        ['kpi-activas','kpi-aprobadas','kpi-revisar'].forEach(id => document.getElementById(id).textContent = '0');
+        document.getElementById('kpi-pipeline').textContent = '$0.00';
+      }
+    } catch (e) {
+      ['kpi-activas','kpi-aprobadas','kpi-revisar','kpi-pipeline'].forEach(id => document.getElementById(id).textContent = '—');
+    }
+  });
+</script>
+
+</body>
+</html>

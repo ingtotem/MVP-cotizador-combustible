@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proyectos · TOTEM</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark">T</div>
+    <div class="brand-name">TOTEM</div>
+    <span class="brand-tag">Control de Combustible</span>
+  </div>
+  <nav class="nav-tabs">
+    <a href="index.html">Dashboard</a>
+    <a href="levantamiento.html">Levantamiento</a>
+    <a href="oferta.html">Cotización</a>
+    <a href="proyectos.html" class="active">Proyectos</a>
+    <a href="mantenimiento.html" id="nav-mant" style="display:none;">Mantenimiento</a>
+  </nav>
+  <div class="user-chip" id="user-chip">
+    <span id="user-name">—</span>
+    <span class="role" id="user-rol">···</span>
+  </div>
+</header>
+
+<main class="app-main">
+
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">Pipeline</div>
+      <h1>Proyectos</h1>
+      <p class="subtitle">Estado de todas las ofertas y proyectos. Activa filtros para enfocar tu vista.</p>
+    </div>
+    <a href="oferta.html" class="btn btn-primary">Nueva cotización</a>
+  </div>
+
+  <div class="quick-filters">
+    <button class="quick-filter active" data-filter="todos">Todos</button>
+    <button class="quick-filter" data-filter="BORRADOR">Borradores</button>
+    <button class="quick-filter" data-filter="ENVIADO">Enviadas</button>
+    <button class="quick-filter" data-filter="APROBADO">Aprobadas</button>
+    <button class="quick-filter" data-filter="ARCHIVADO">Archivadas</button>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>Ofertas registradas</h3>
+      <div style="width:280px;">
+        <div class="search-bar">
+          <input id="search-input" type="text" placeholder="Buscar por cliente, código…" />
+        </div>
+      </div>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Cliente</th>
+          <th>Versión</th>
+          <th>Estado</th>
+          <th>Creado</th>
+          <th class="money">Total USD</th>
+        </tr>
+      </thead>
+      <tbody id="ofertas-tbody">
+        <tr><td colspan="6" class="text-muted" style="text-align:center;padding:32px;">Cargando…</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/theme.js"></script>
+<script>
+  let ofertas = [];
+  let filtroActual = 'todos';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const user = await requireAuth('proyectos');
+    if (!user) return;
+    mountThemeToggle();
+    aplicarPermisosNav();
+    await cargarOfertas();
+
+    document.querySelectorAll('.quick-filter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.quick-filter').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filtroActual = btn.dataset.filter;
+        renderTabla();
+      });
+    });
+
+    document.getElementById('search-input').addEventListener('input', renderTabla);
+  });
+
+  async function cargarOfertas() {
+    try {
+      const { data, error } = await supabaseClient.from('ofertas_con_version_actual').select('*').order('creado_en', { ascending: false });
+      if (!error && data) {
+        ofertas = data;
+        renderTabla();
+      } else {
+        document.getElementById('ofertas-tbody').innerHTML = `<tr><td colspan="6" class="text-muted" style="text-align:center;padding:32px;">No hay ofertas registradas todavía. Ve a Cotización para crear la primera.</td></tr>`;
+      }
+    } catch (e) {
+      document.getElementById('ofertas-tbody').innerHTML = `<tr><td colspan="6" class="text-error" style="text-align:center;padding:32px;">Error cargando ofertas: ${e.message}</td></tr>`;
+    }
+  }
+
+  function renderTabla() {
+    const search = document.getElementById('search-input').value.toLowerCase();
+    let list = ofertas;
+    if (filtroActual !== 'todos') list = list.filter(o => o.estado === filtroActual);
+    if (search) list = list.filter(o => (o.cliente || '').toLowerCase().includes(search) || (o.codigo || '').toLowerCase().includes(search));
+
+    const tbody = document.getElementById('ofertas-tbody');
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-muted" style="text-align:center;padding:32px;">Sin resultados.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = list.map(o => {
+      const badge = badgeForEstado(o.estado);
+      const fecha = o.creado_en ? new Date(o.creado_en).toLocaleDateString('es-EC') : '—';
+      return `
+        <tr>
+          <td class="mono"><strong>${o.codigo || '—'}</strong></td>
+          <td>${o.cliente || '—'}</td>
+          <td><span class="badge badge-v">v${o.version_numero || 1}</span></td>
+          <td>${badge}</td>
+          <td class="mono">${fecha}</td>
+          <td class="money">$${Number(o.total_usd || 0).toLocaleString('es-EC', { minimumFractionDigits: 2 })}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  function badgeForEstado(e) {
+    if (e === 'BORRADOR') return '<span class="badge badge-draft">Borrador</span>';
+    if (e === 'ENVIADO') return '<span class="badge badge-v">Enviado</span>';
+    if (e === 'APROBADO') return '<span class="badge badge-approved">Aprobado</span>';
+    if (e === 'ARCHIVADO') return '<span class="badge badge-archived">Archivado</span>';
+    return `<span class="badge badge-v">${e}</span>`;
+  }
+</script>
+
+</body>
+</html>
