@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mantenimiento · TOTEM</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .mant-tabs {
+      display: flex;
+      gap: var(--s-1);
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: var(--s-6);
+      overflow-x: auto;
+    }
+    .mant-tab {
+      padding: 10px 16px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .mant-tab:hover { color: var(--text-primary); }
+    .mant-tab.active {
+      color: var(--brand-primary);
+      border-bottom-color: var(--brand-primary);
+    }
+    .mant-pane { display: none; }
+    .mant-pane.active { display: block; }
+
+    .editable-table input,
+    .editable-table select {
+      padding: 4px 8px;
+      font-size: 12px;
+      min-width: 0;
+    }
+    .editable-table td { vertical-align: middle; }
+    .editable-table .row-actions {
+      display: flex;
+      gap: 4px;
+      justify-content: flex-end;
+    }
+    .row-saved {
+      animation: flash 1s ease-out;
+    }
+    @keyframes flash {
+      0% { background: rgba(16, 185, 129, 0.25); }
+      100% { background: transparent; }
+    }
+    .row-error {
+      background: rgba(239, 68, 68, 0.12) !important;
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--text-primary);
+      color: var(--bg-base);
+      padding: 12px 18px;
+      border-radius: var(--r-md);
+      font-size: 13px;
+      box-shadow: var(--shadow-lg);
+      z-index: 200;
+      max-width: 360px;
+    }
+    .toast.error { background: var(--accent-error); color: white; }
+    .toast.success { background: var(--accent-success); color: white; }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark">T</div>
+    <div class="brand-name">TOTEM</div>
+    <span class="brand-tag">Control de Combustible</span>
+  </div>
+  <nav class="nav-tabs">
+    <a href="index.html">Dashboard</a>
+    <a href="levantamiento.html">Levantamiento</a>
+    <a href="oferta.html">Cotización</a>
+    <a href="proyectos.html">Proyectos</a>
+    <a href="mantenimiento.html" class="active">Mantenimiento</a>
+  </nav>
+  <div class="user-chip" id="user-chip">
+    <span id="user-name">—</span>
+    <span class="role" id="user-rol">···</span>
+  </div>
+</header>
+
+<main class="app-main">
+
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">Configuración</div>
+      <h1>Mantenimiento</h1>
+      <p class="subtitle">Catálogo, recetas, familias y costos adicionales. Edita aquí mismo y guarda en la base de datos.</p>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-secondary" onclick="exportarBackup()">Exportar JSON</button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid grid-4" style="margin-bottom: 24px;">
+    <div class="stat-card">
+      <div class="label">Productos</div>
+      <div class="value" id="kpi-productos">—</div>
+    </div>
+    <div class="stat-card cool">
+      <div class="label">Familias</div>
+      <div class="value" id="kpi-familias">—</div>
+    </div>
+    <div class="stat-card warn">
+      <div class="label">Recetas</div>
+      <div class="value" id="kpi-recetas">—</div>
+    </div>
+    <div class="stat-card success">
+      <div class="label">Adicionales</div>
+      <div class="value" id="kpi-adicionales">—</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="mant-tabs">
+    <button class="mant-tab active" data-pane="catalogo">📦 Catálogo</button>
+    <button class="mant-tab" data-pane="recetas">🧪 Recetas</button>
+    <button class="mant-tab" data-pane="familias">📂 Familias</button>
+    <button class="mant-tab" data-pane="adicionales">💰 Costos adicionales</button>
+    <button class="mant-tab" data-pane="parametros">⚙️ Parámetros</button>
+  </div>
+
+  <!-- ─── PANE: CATÁLOGO ─── -->
+  <div class="mant-pane active" id="pane-catalogo">
+    <section class="panel">
+      <div class="panel-head">
+        <h3><span class="num">A</span> Catálogo de productos</h3>
+        <div class="flex-gap">
+          <div class="search-bar" style="width: 240px;">
+            <input id="cat-search" type="text" placeholder="Buscar SKU, marca…" />
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="agregarProductoNuevo()">+ Producto</button>
+        </div>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="data-table editable-table" id="tabla-catalogo">
+          <thead>
+            <tr>
+              <th style="min-width:90px;">SKU</th>
+              <th style="min-width:160px;">Nombre</th>
+              <th>Familia</th>
+              <th>Marca</th>
+              <th>Caract.</th>
+              <th>Categ. MO</th>
+              <th class="money">Costo</th>
+              <th class="money">PVP</th>
+              <th style="width:90px;text-align:right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-catalogo"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- ─── PANE: RECETAS ─── -->
+  <div class="mant-pane" id="pane-recetas">
+    <section class="panel" style="margin-bottom: 24px;">
+      <div class="panel-head">
+        <h3><span class="num">B1</span> Recetas de tubería <span class="text-muted" style="font-weight:400;font-size:12px;">(costo por metro de instalación)</span></h3>
+        <button class="btn btn-primary btn-sm" onclick="agregarRecetaTubo()">+ Tubo</button>
+      </div>
+      <table class="data-table editable-table" id="tabla-tubos">
+        <thead>
+          <tr>
+            <th style="min-width:100px;">Código</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th class="money">Costo / metro</th>
+            <th style="width:90px;text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-tubos"></tbody>
+      </table>
+    </section>
+
+    <section class="panel" style="margin-bottom: 24px;">
+      <div class="panel-head">
+        <h3><span class="num">B2</span> Recetas de cable <span class="text-muted" style="font-weight:400;font-size:12px;">(costo por metro)</span></h3>
+        <button class="btn btn-primary btn-sm" onclick="agregarRecetaCable()">+ Cable</button>
+      </div>
+      <table class="data-table editable-table" id="tabla-cables">
+        <thead>
+          <tr>
+            <th style="min-width:100px;">Código</th>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th class="money">Costo / metro</th>
+            <th style="width:90px;text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-cables"></tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3><span class="num">B3</span> Recetas de mano de obra <span class="text-muted" style="font-weight:400;font-size:12px;">(por categoría de producto)</span></h3>
+        <button class="btn btn-primary btn-sm" onclick="agregarRecetaMO()">+ Categoría</button>
+      </div>
+      <table class="data-table editable-table" id="tabla-mo">
+        <thead>
+          <tr>
+            <th style="min-width:120px;">Categoría</th>
+            <th class="money">Horas base</th>
+            <th class="money">Factor altura &gt;3m</th>
+            <th class="money">$ / hora</th>
+            <th style="width:90px;text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-mo"></tbody>
+      </table>
+      <div class="panel-body" style="padding-top:0;">
+        <p class="text-muted" style="font-size:11px;margin:0;">
+          💡 La categoría MO se asigna a cada producto en la pestaña Catálogo (columna "Categ. MO"). Por defecto coincide con el grupo del producto.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ─── PANE: FAMILIAS ─── -->
+  <div class="mant-pane" id="pane-familias">
+    <section class="panel">
+      <div class="panel-head">
+        <h3><span class="num">C</span> Familias de productos <span class="text-muted" style="font-weight:400;font-size:12px;">(agrupan modelos con misma característica intercambiable)</span></h3>
+        <button class="btn btn-primary btn-sm" onclick="agregarFamilia()">+ Familia</button>
+      </div>
+      <table class="data-table editable-table" id="tabla-familias">
+        <thead>
+          <tr>
+            <th style="min-width:100px;">Código</th>
+            <th>Nombre</th>
+            <th>Grupo</th>
+            <th>Icono</th>
+            <th>Característica</th>
+            <th>Unidad</th>
+            <th style="width:60px;">Orden</th>
+            <th style="width:90px;text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-familias"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <!-- ─── PANE: ADICIONALES ─── -->
+  <div class="mant-pane" id="pane-adicionales">
+    <section class="panel">
+      <div class="panel-head">
+        <h3><span class="num">D</span> Costos adicionales <span class="text-muted" style="font-weight:400;font-size:12px;">(logística, obra civil, especiales)</span></h3>
+        <button class="btn btn-primary btn-sm" onclick="agregarAdicional()">+ Concepto</button>
+      </div>
+      <table class="data-table editable-table" id="tabla-adicionales">
+        <thead>
+          <tr>
+            <th style="min-width:100px;">Código</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Unidad</th>
+            <th class="money">Costo</th>
+            <th style="width:90px;text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-adicionales"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <!-- ─── PANE: PARÁMETROS ─── -->
+  <div class="mant-pane" id="pane-parametros">
+    <section class="panel">
+      <div class="panel-head">
+        <h3><span class="num">E</span> Parámetros globales</h3>
+      </div>
+      <table class="data-table editable-table" id="tabla-parametros">
+        <thead>
+          <tr>
+            <th style="min-width:160px;">Clave</th>
+            <th>Descripción</th>
+            <th class="money">Valor</th>
+            <th style="width:90px;text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-parametros"></tbody>
+      </table>
+    </section>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/data.js"></script>
+<script src="js/mantenimiento.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const user = await requireAuth('mantenimiento');
+    if (!user) return;
+    if (user.rol !== 'admin') {
+      alert('Acceso restringido a administradores.');
+      window.location.href = 'index.html';
+      return;
+    }
+    mountThemeToggle();
+    aplicarPermisosNav();
+
+    const ok = await cargarDatosBase();
+    if (!ok) return;
+
+    // KPIs
+    document.getElementById('kpi-productos').textContent = CATALOGO.length;
+    document.getElementById('kpi-familias').textContent = FAMILIAS.length;
+    document.getElementById('kpi-recetas').textContent = Object.keys(RECETAS_TUBO).length + Object.keys(RECETAS_CABLE).length + Object.keys(RECETAS_MANO_OBRA).length;
+    document.getElementById('kpi-adicionales').textContent = COSTOS_ADICIONALES.length;
+
+    // Pestañas
+    document.querySelectorAll('.mant-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mant-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.mant-pane').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('pane-' + btn.dataset.pane).classList.add('active');
+      });
+    });
+
+    // Pintar todas las tablas
+    iniciarMantenimiento();
+  });
+</script>
+
+</body>
+</html>

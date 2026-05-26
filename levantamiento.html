@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Levantamiento · TOTEM</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark">T</div>
+    <div>
+      <div class="brand-name">TOTEM</div>
+    </div>
+    <span class="brand-tag">Control de Combustible</span>
+  </div>
+  <nav class="nav-tabs">
+    <a href="index.html">Dashboard</a>
+    <a href="levantamiento.html" class="active">Levantamiento</a>
+    <a href="oferta.html">Cotización</a>
+    <a href="proyectos.html">Proyectos</a>
+    <a href="mantenimiento.html" id="nav-mant" style="display:none;">Mantenimiento</a>
+  </nav>
+  <div class="user-chip" id="user-chip" title="Sesión actual">
+    <span id="user-name">—</span>
+    <span class="role" id="user-rol">···</span>
+  </div>
+</header>
+
+<main class="app-main">
+
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">PASO 1 DE 3</div>
+      <h1>Levantamiento técnico</h1>
+      <p class="subtitle">Registra cliente, equipos identificados en sitio y requerimientos adicionales.</p>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-secondary" onclick="guardarBorrador()">Guardar borrador</button>
+      <button class="btn btn-primary" onclick="enviarACotizar()">Enviar a cotización →</button>
+    </div>
+  </div>
+
+  <!-- 01 · Proyecto -->
+  <section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-head">
+      <h3><span class="num">01</span> Datos del proyecto</h3>
+    </div>
+    <div class="panel-body">
+      <div class="grid grid-3">
+        <div class="field">
+          <label>Cliente *</label>
+          <input id="lev-cliente" type="text" placeholder="Ej. Operadora del Río S.A." />
+        </div>
+        <div class="field">
+          <label>Contacto</label>
+          <input id="lev-contacto" type="text" placeholder="Nombre del contacto en sitio" />
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input id="lev-telefono" type="text" placeholder="(09) 9999 9999" />
+        </div>
+        <div class="field">
+          <label>Referencia / Código</label>
+          <input id="lev-referencia" type="text" placeholder="LEV-2025-001" />
+        </div>
+        <div class="field">
+          <label>Lugar (provincia · cantón)</label>
+          <input id="lev-lugar" type="text" placeholder="Guayas · Guayaquil" />
+        </div>
+        <div class="field">
+          <label>Coordenadas GPS</label>
+          <input id="lev-coords" type="text" placeholder="-2.1709, -79.9224" />
+        </div>
+      </div>
+      <div class="field" style="margin-top:8px;">
+        <label>Problema / necesidad del cliente</label>
+        <textarea id="lev-problema" rows="2" placeholder="Describe en una línea la necesidad detectada"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 · Selector POS -->
+  <section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-head">
+      <h3><span class="num">02</span> Catálogo de equipos</h3>
+      <div style="width:280px;">
+        <div class="search-bar">
+          <input id="pos-search-input" type="text" placeholder="Buscar por marca, modelo, SKU…" />
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+
+      <div class="pos-section">
+        <div class="pos-section-title">
+          <span>Familias</span>
+          <span class="count" id="familias-count"></span>
+        </div>
+        <div class="familia-grid" id="familias-grid"></div>
+      </div>
+
+      <div class="pos-section">
+        <div class="pos-section-title" id="modelos-title">
+          <span style="opacity:0.5">Selecciona una familia para ver modelos</span>
+        </div>
+        <div class="modelo-grid" id="modelos-grid"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 03 · Lista de equipos -->
+  <section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-head">
+      <h3><span class="num">03</span> Equipos del levantamiento <span class="badge badge-v mono" id="lev-count">0</span></h3>
+    </div>
+    <div class="panel-body">
+      <div id="lev-list"></div>
+    </div>
+  </section>
+
+  <!-- 04 · Requerimientos -->
+  <section class="panel">
+    <div class="panel-head">
+      <h3><span class="num">04</span> Requerimientos adicionales <span class="badge badge-v mono" id="req-count">0</span></h3>
+    </div>
+    <div class="panel-body">
+      <p class="text-muted" style="font-size:12px;margin:0 0 16px;">
+        Si detectaste necesidades de movilización, obra civil o trabajos especiales, regístralas aquí. Los costos los calculará el cotizador después.
+      </p>
+      <div class="req-buttons">
+        <button class="req-btn" onclick="abrirModalReq('LOGISTICA')">
+          <div class="req-btn-icon">🚚</div>
+          <div class="req-btn-content">
+            <div class="req-btn-title">Logística y movilización</div>
+            <div class="req-btn-desc">Viajes, hospedaje, transporte de equipos</div>
+          </div>
+          <div class="req-btn-plus">+</div>
+        </button>
+        <button class="req-btn" onclick="abrirModalReq('OBRA_CIVIL')">
+          <div class="req-btn-icon">🧱</div>
+          <div class="req-btn-content">
+            <div class="req-btn-title">Obra civil</div>
+            <div class="req-btn-desc">Bases, excavaciones, instalaciones</div>
+          </div>
+          <div class="req-btn-plus">+</div>
+        </button>
+        <button class="req-btn" onclick="abrirModalReq('ESPECIALES')">
+          <div class="req-btn-icon">⚙️</div>
+          <div class="req-btn-content">
+            <div class="req-btn-title">Trabajos especiales</div>
+            <div class="req-btn-desc">Calibraciones, pruebas, capacitación</div>
+          </div>
+          <div class="req-btn-plus">+</div>
+        </button>
+      </div>
+      <div style="margin-top: 20px;">
+        <div id="req-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="spacer-lg"></div>
+  <div class="flex-between">
+    <a href="index.html" class="btn btn-ghost">← Volver al dashboard</a>
+    <div class="flex-gap">
+      <button class="btn btn-secondary" onclick="guardarBorrador()">Guardar borrador</button>
+      <button class="btn btn-primary" onclick="enviarACotizar()">Enviar a cotización →</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL · Configurar equipo -->
+<div class="modal-overlay" id="modal-equipo">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="eyebrow">Agregar al levantamiento</div>
+        <h3 id="modal-titulo">—</h3>
+        <div class="meta mono" id="modal-sku">—</div>
+      </div>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid grid-3">
+        <div class="field">
+          <label>Cantidad *</label>
+          <input id="modal-cantidad" type="number" min="1" value="1" />
+        </div>
+        <div class="field">
+          <label>Ubicación en sitio</label>
+          <input id="modal-ubicacion" type="text" placeholder="Tanque #1, Pedestal A…" />
+        </div>
+        <div class="field">
+          <label style="display:flex;align-items:center;gap:6px;">
+            <input id="modal-altura" type="checkbox" style="width:auto;margin:0;" />
+            <span style="margin:0;">Trabajo en altura &gt; 3m</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <h4 style="margin-bottom:12px;">Tubería</h4>
+      <div class="grid grid-2">
+        <div class="field">
+          <label>Tipo de tubo</label>
+          <select id="modal-tipo-tubo"></select>
+        </div>
+        <div class="field">
+          <label>Metros de tubo</label>
+          <input id="modal-m-tubo" type="number" min="0" step="0.5" value="0" />
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <h4 style="margin-bottom:12px;">Cableado</h4>
+      <div class="grid grid-2">
+        <div class="field">
+          <label>Cable instrumentación</label>
+          <select id="modal-cable-instr"></select>
+        </div>
+        <div class="field">
+          <label>Metros instrumentación</label>
+          <input id="modal-m-cable-instr" type="number" min="0" step="0.5" value="0" />
+        </div>
+        <div class="field">
+          <label>Cable datos</label>
+          <select id="modal-cable-datos"></select>
+        </div>
+        <div class="field">
+          <label>Metros datos</label>
+          <input id="modal-m-cable-datos" type="number" min="0" step="0.5" value="0" />
+        </div>
+        <div class="field">
+          <label>Cable eléctrico</label>
+          <select id="modal-cable-elec"></select>
+        </div>
+        <div class="field">
+          <label>Metros eléctrico</label>
+          <input id="modal-m-cable-elec" type="number" min="0" step="0.5" value="0" />
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="field">
+        <label>Observaciones</label>
+        <textarea id="modal-observacion" rows="2" placeholder="Ej. requiere adecuación de tanque, acceso difícil…"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarItemModal()">Guardar equipo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL · Requerimientos -->
+<div class="modal-overlay" id="modal-req">
+  <div class="modal" style="max-width: 720px;">
+    <div class="modal-head">
+      <div>
+        <div class="eyebrow" id="modal-req-eyebrow">Requerimientos</div>
+        <h3 id="modal-req-titulo">—</h3>
+        <div class="meta" id="modal-req-desc">—</div>
+      </div>
+      <button class="modal-close" onclick="cerrarModalReq()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-req-items"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="cerrarModalReq()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarReqModal()">Guardar requerimientos</button>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase CDN + scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/data.js"></script>
+<script src="js/calculo.js"></script>
+<script src="js/levantamiento.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const user = await requireAuth('levantamiento');
+    if (!user) return;
+
+    mountThemeToggle();
+    aplicarPermisosNav();
+
+    const ok = await cargarDatosBase();
+    if (!ok) {
+      alert('No se pudieron cargar los datos del catálogo. Verifica tu conexión.');
+      return;
+    }
+    iniciarLevantamiento();
+  });
+</script>
+
+</body>
+</html>
